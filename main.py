@@ -34,18 +34,21 @@ class SadapApplicationController:
         self.show_login_portal()
 
     def show_login_portal(self):
-        """Display the operator login and registration dialog."""
+        """Display the operator login and registration window in full screen."""
         if self.cover_window:
             self.cover_window.close()
             self.cover_window = None
 
         self.login_window = NormalLoginWindow()
         self.login_window.login_successful.connect(self._on_login_success)
-        self.login_window.show()
+        self.login_window.showMaximized()
 
     def _on_login_success(self, operator_data: dict):
         """Open the Public Cover Console upon successful regular login in full screen."""
         logger.info(f"Transitioning to Cover Mode for operator: {operator_data.get('username')}")
+        if self.login_window:
+            self.login_window.close()
+            self.login_window = None
         self.cover_window = MainCoverWindow(operator_data=operator_data)
         self.cover_window.sign_out_requested.connect(self.show_login_portal)
         self.cover_window.showMaximized()

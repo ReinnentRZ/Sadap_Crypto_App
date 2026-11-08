@@ -19,6 +19,7 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
 from config.settings import SAMPLE_IMAGES_DIR
+from gui.components.password_line_edit import PasswordLineEdit
 from core.stego.lsb_engine import (
     embed_payload_into_image,
     extract_payload_from_image,
@@ -78,15 +79,12 @@ class TabStegoLab(QWidget):
         e_layout.addWidget(QLabel("Secret Message to Hide:"))
         self.secret_text_input = QTextEdit()
         self.secret_text_input.setPlaceholderText("Enter confidential message, coordinates, or directive...")
-        self.secret_text_input.setPlainText("ORBITAL DIRECTIVE: Satellite telemetry aligned. Target coordinates verified.")
         self.secret_text_input.setMaximumHeight(80)
         e_layout.addWidget(self.secret_text_input)
 
         # Optional Pre-encryption
         e_layout.addWidget(QLabel("Optional AES-256 Pre-Encryption Passphrase:"))
-        self.emb_passphrase_input = QLineEdit()
-        self.emb_passphrase_input.setPlaceholderText("Leave blank for plain LSB, or enter passphrase for Crypto-Stego...")
-        self.emb_passphrase_input.setText("StegoPassphrase99")
+        self.emb_passphrase_input = PasswordLineEdit(placeholder="Leave blank for plain LSB, or enter passphrase for Crypto-Stego...")
         e_layout.addWidget(self.emb_passphrase_input)
 
         self.btn_embed = QPushButton("🛰️ Embed Secret Payload (LSB)")
@@ -126,9 +124,7 @@ class TabStegoLab(QWidget):
 
         # Passphrase for Decryption
         x_layout.addWidget(QLabel("Passphrase (if payload was pre-encrypted):"))
-        self.ext_passphrase_input = QLineEdit()
-        self.ext_passphrase_input.setPlaceholderText("Enter passphrase if image is protected...")
-        self.ext_passphrase_input.setText("StegoPassphrase99")
+        self.ext_passphrase_input = PasswordLineEdit(placeholder="Enter passphrase if image is protected...")
         x_layout.addWidget(self.ext_passphrase_input)
 
         self.btn_extract = QPushButton("🔍 Extract Secret Payload")

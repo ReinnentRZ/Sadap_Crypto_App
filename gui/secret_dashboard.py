@@ -27,6 +27,7 @@ from gui.tabs.tab_stego_lab import TabStegoLab
 from gui.tabs.tab_database_vault import TabDatabaseVault
 from gui.tabs.tab_blockchain_view import TabBlockchainView
 from core.database.db_manager import get_vault_db
+from gui.components.password_line_edit import PasswordLineEdit
 from core.utils.logger import get_logger
 
 logger = get_logger("SecretDashboard")
@@ -55,19 +56,13 @@ class ChangeMasterCodeDialog(QDialog):
         form = QFormLayout()
         form.setSpacing(8)
 
-        self.old_pass_input = QLineEdit()
-        self.old_pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.old_pass_input.setPlaceholderText("Current passcode...")
+        self.old_pass_input = PasswordLineEdit(self, placeholder="Current passcode...")
         form.addRow("Current Passcode:", self.old_pass_input)
 
-        self.new_pass_input = QLineEdit()
-        self.new_pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.new_pass_input.setPlaceholderText("New passcode (min 8 chars)...")
+        self.new_pass_input = PasswordLineEdit(self, placeholder="New passcode (min 8 chars)...")
         form.addRow("New Passcode:", self.new_pass_input)
 
-        self.confirm_pass_input = QLineEdit()
-        self.confirm_pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.confirm_pass_input.setPlaceholderText("Confirm new passcode...")
+        self.confirm_pass_input = PasswordLineEdit(self, placeholder="Confirm new passcode...")
         form.addRow("Confirm Passcode:", self.confirm_pass_input)
 
         layout.addLayout(form)

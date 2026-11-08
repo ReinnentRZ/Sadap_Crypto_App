@@ -1,0 +1,133 @@
+/* AeroSat GroundStation - Light Theme Stylesheet */
+
+QMainWindow, QDialog {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+QWidget {
+    font-size: 13px;
+    color: #1E293B;
+}
+
+/* GroupBox & Cards */
+QGroupBox {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    margin-top: 18px;
+    padding: 14px;
+    font-weight: 600;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 8px;
+    color: #0284C7;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #0284C7;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: #0369A1;
+}
+
+QPushButton:pressed {
+    background-color: #075985;
+}
+
+QPushButton:disabled {
+    background-color: #CBD5E1;
+    color: #94A3B8;
+}
+
+/* Secondary Button */
+QPushButton#secondaryBtn {
+    background-color: #F1F5F9;
+    color: #334155;
+    border: 1px solid #CBD5E1;
+}
+
+QPushButton#secondaryBtn:hover {
+    background-color: #E2E8F0;
+}
+
+/* Inputs & Text Areas */
+QLineEdit, QTextEdit, QPlainTextEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 8px;
+    color: #0F172A;
+    selection-background-color: #38BDF8;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
+    border: 1px solid #0284C7;
+    background-color: #F0F9FF;
+}
+
+/* Tab Widget */
+QTabWidget::pane {
+    border: 1px solid #E2E8F0;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    top: -1px;
+}
+
+QTabBar::tab {
+    background-color: #F1F5F9;
+    color: #64748B;
+    padding: 10px 20px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 4px;
+    font-weight: 600;
+}
+
+QTabBar::tab:selected {
+    background-color: #FFFFFF;
+    color: #0284C7;
+    border: 1px solid #E2E8F0;
+    border-bottom: 2px solid #0284C7;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #E2E8F0;
+    color: #334155;
+}
+
+/* Status Bar & Tables */
+QStatusBar {
+    background-color: #F1F5F9;
+    color: #475569;
+    border-top: 1px solid #E2E8F0;
+}
+
+QTableWidget, QTableView {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    gridline-color: #F1F5F9;
+    border-radius: 6px;
+    selection-background-color: #E0F2FE;
+    selection-color: #0369A1;
+}
+
+QHeaderView::section {
+    background-color: #F8FAFC;
+    color: #475569;
+    font-weight: 600;
+    padding: 6px;
+    border: none;
+    border-bottom: 1px solid #E2E8F0;
+}

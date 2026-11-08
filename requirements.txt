@@ -1,0 +1,7 @@
+# AeroSat GroundStation (Sadap Crypto) Dependencies
+PyQt6>=6.6.0
+cryptography>=42.0.0
+opencv-python>=4.9.0.80
+numpy>=1.26.0
+pillow>=10.2.0
+psutil>=5.9.8

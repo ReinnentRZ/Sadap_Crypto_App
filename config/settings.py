@@ -31,8 +31,8 @@ YUNET_MODEL_PATH = MODELS_DIR / "face_detection_yunet.onnx"
 SFACE_MODEL_PATH = MODELS_DIR / "face_recognition_sface.onnx"
 
 # Authentication Settings
-USB_TOKEN_FILENAME = "aerosat.sig"
-USB_SIGNATURE_MAGIC = "AEROSAT-UPLINK-KEY-v1.0"
+USB_TOKEN_FILENAME = "sadap.sig"
+USB_SIGNATURE_MAGIC = "SADAP-UPLINK-KEY-v1.0"
 FACE_COSINE_THRESHOLD = 0.363  # SFace recommended cosine similarity threshold (higher is more similar)
 FACE_L2_THRESHOLD = 1.128      # SFace L2 distance threshold (lower is more similar)
 PASSWORD_HASH_ALGORITHM = "PBKDF2_SHA256"

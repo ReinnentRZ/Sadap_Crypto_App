@@ -268,7 +268,7 @@ class MainCoverWindow(QMainWindow):
         self.pass_table.setColumnCount(5)
         self.pass_table.setHorizontalHeaderLabels(["Pass #", "Satellite Target", "AOS (Acquire)", "Max Elev", "Duration"])
         self.pass_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.pass_table.setMaximumHeight(120)
+        self.pass_table.setMaximumHeight(180)
         self._populate_pass_schedule()
         pass_layout.addWidget(self.pass_table)
         left_col.addWidget(pass_group, stretch=3)

@@ -18,16 +18,23 @@ ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 ICONS_DIR.mkdir(parents=True, exist_ok=True)
 SAMPLE_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 STYLES_DIR.mkdir(parents=True, exist_ok=True)
+MODELS_DIR = ASSETS_DIR / "models"
+MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Database & Ledger File Paths
 DB_PATH = DATA_DIR / "vault.db"
 BLOCKCHAIN_PATH = DATA_DIR / "blockchain_ledger.json"
 BIOMETRIC_TEMPLATE_PATH = DATA_DIR / "keys" / "face_template.npz"
 
+# AI Face Recognition Models
+YUNET_MODEL_PATH = MODELS_DIR / "face_detection_yunet.onnx"
+SFACE_MODEL_PATH = MODELS_DIR / "face_recognition_sface.onnx"
+
 # Authentication Settings
 USB_TOKEN_FILENAME = "aerosat.sig"
 USB_SIGNATURE_MAGIC = "AEROSAT-UPLINK-KEY-v1.0"
-FACE_SIMILARITY_THRESHOLD = 0.55  # Distance threshold for face matching
+FACE_COSINE_THRESHOLD = 0.363  # SFace recommended cosine similarity threshold (higher is more similar)
+FACE_L2_THRESHOLD = 1.128      # SFace L2 distance threshold (lower is more similar)
 PASSWORD_HASH_ALGORITHM = "PBKDF2_SHA256"
 PASSWORD_SALT_BYTES = 16
 PASSWORD_KDF_ITERATIONS = 200_000

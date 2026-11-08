@@ -10,6 +10,7 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
 
 from core.utils.logger import get_logger
+from config.settings import MAP_DIR, ASSETS_DIR
 
 logger = get_logger("GoogleSatMap")
 
@@ -33,7 +34,13 @@ class GoogleSatelliteMapWidget(QWidget):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(480, 320)
 
-        self.html_file = Path(__file__).resolve().parent.parent.parent / "assets" / "map" / "map_viewer.html"
+        # Robust path resolution for development and compiled binary
+        map_path = MAP_DIR / "map_viewer.html"
+        if not map_path.exists():
+            map_path = ASSETS_DIR / "map" / "map_viewer.html"
+        if not map_path.exists():
+            map_path = Path(__file__).resolve().parent.parent.parent / "assets" / "map" / "map_viewer.html"
+        self.html_file = map_path
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

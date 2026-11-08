@@ -177,6 +177,12 @@ class MainCoverWindow(QMainWindow):
         op_lbl.setStyleSheet("background-color: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 4px; padding: 4px 8px; font-size: 11px;")
         op_box.addWidget(op_lbl)
 
+        self.btn_fullscreen = QPushButton("⛶ Fullscreen (F11)")
+        self.btn_fullscreen.setObjectName("secondaryBtn")
+        self.btn_fullscreen.setStyleSheet("padding: 4px 10px; font-size: 11px;")
+        self.btn_fullscreen.clicked.connect(self._toggle_fullscreen)
+        op_box.addWidget(self.btn_fullscreen)
+
         self.btn_sign_out = QPushButton("🚪 Sign Out")
         self.btn_sign_out.setObjectName("secondaryBtn")
         self.btn_sign_out.setStyleSheet("padding: 4px 10px; font-size: 11px;")
@@ -346,8 +352,12 @@ class MainCoverWindow(QMainWindow):
     def _toggle_fullscreen(self):
         if self.isFullScreen():
             self.showMaximized()
+            if hasattr(self, "btn_fullscreen"):
+                self.btn_fullscreen.setText("⛶ Fullscreen (F11)")
         else:
             self.showFullScreen()
+            if hasattr(self, "btn_fullscreen"):
+                self.btn_fullscreen.setText("🗗 Windowed (F11)")
 
     def _update_clock(self):
         now_utc = datetime.datetime.now(datetime.timezone.utc)

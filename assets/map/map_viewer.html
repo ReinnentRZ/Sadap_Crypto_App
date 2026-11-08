@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Sadap Satellite Observation Map</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				background-color: #0b1120;
+				font-family:
+					"Segoe UI",
+					-apple-system,
+					BlinkMacSystemFont,
+					Roboto,
+					sans-serif;
+			}
+			#map {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 1;
+				background-color: #0f172a;
+			}
+
+			/* Tactical Center Reticle Overlay */
+			.crosshair-container {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				pointer-events: none;
+				z-index: 1000;
+			}
+			.crosshair-circle {
+				width: 52px;
+				height: 52px;
+				border: 1.5px dashed rgba(56, 189, 248, 0.85);
+				border-radius: 50%;
+				position: relative;
+				box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+			}
+			.crosshair-h {
+				position: absolute;
+				top: 25px;
+				left: -14px;
+				width: 80px;
+				height: 1.5px;
+				background: rgba(56, 189, 248, 0.9);
+			}
+			.crosshair-v {
+				position: absolute;
+				top: -14px;
+				left: 25px;
+				width: 1.5px;
+				height: 80px;
+				background: rgba(56, 189, 248, 0.9);
+			}
+			.crosshair-center-dot {
+				position: absolute;
+				top: 24px;
+				left: 24px;
+				width: 4px;
+				height: 4px;
+				background: #ef4444;
+				border-radius: 50%;
+				box-shadow: 0 0 6px #ef4444;
+			}
+
+			/* Coordinate & Telemetry HUD Overlay */
+			.coord-hud {
+				position: absolute;
+				bottom: 12px;
+				left: 12px;
+				background: rgba(15, 23, 42, 0.88);
+				color: #38bdf8;
+				border: 1px solid rgba(56, 189, 248, 0.5);
+				border-radius: 5px;
+				padding: 6px 12px;
+				font-family: "Consolas", "Courier New", monospace;
+				font-size: 11px;
+				font-weight: bold;
+				z-index: 1000;
+				pointer-events: none;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+				backdrop-filter: blur(4px);
+				letter-spacing: 0.5px;
+			}
+
+			/* Live Status Badge Top-Left */
+			.tactical-badge {
+				position: absolute;
+				top: 12px;
+				left: 12px;
+				background: rgba(15, 23, 42, 0.85);
+				color: #10b981;
+				border: 1px solid rgba(16, 185, 129, 0.5);
+				border-radius: 4px;
+				padding: 4px 10px;
+				font-family: "Consolas", monospace;
+				font-size: 10px;
+				font-weight: bold;
+				z-index: 1000;
+				pointer-events: none;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+			.pulse-dot {
+				width: 7px;
+				height: 7px;
+				background-color: #10b981;
+				border-radius: 50%;
+				animation: pulse 1.5s infinite;
+			}
+			@keyframes pulse {
+				0% {
+					opacity: 0.4;
+					transform: scale(0.9);
+				}
+				50% {
+					opacity: 1;
+					transform: scale(1.2);
+				}
+				100% {
+					opacity: 0.4;
+					transform: scale(0.9);
+				}
+			}
+
+			/* Quick Location Presets Toolbar (Tactical Floating) */
+			.preset-toolbar {
+				position: absolute;
+				top: 48px;
+				left: 12px;
+				z-index: 1000;
+				display: flex;
+        flex-direction: column;
+				gap: 6px;
+			}
+			.preset-btn {
+				background: rgba(15, 23, 42, 0.85);
+				color: #e2e8f0;
+				border: 1px solid rgba(148, 163, 184, 0.4);
+				border-radius: 4px;
+				padding: 5px 9px;
+				font-size: 11px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				backdrop-filter: blur(4px);
+			}
+			.preset-btn:hover {
+				background: #0284c7;
+				color: #ffffff;
+				border-color: #38bdf8;
+				box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+			}
+
+			/* Custom Leaflet Control Layer Styling */
+			.leaflet-control-layers {
+				border: 1px solid #cbd5e1 !important;
+				border-radius: 6px !important;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+				font-size: 11px !important;
+				font-weight: 600 !important;
+				color: #0f172a !important;
+				background: rgba(255, 255, 255, 0.95) !important;
+			}
+			.leaflet-bar a {
+				background-color: rgba(255, 255, 255, 0.95) !important;
+				color: #0f172a !important;
+				border-bottom: 1px solid #e2e8f0 !important;
+			}
+			.leaflet-bar a:hover {
+				background-color: #f1f5f9 !important;
+				color: #0284c7 !important;
+			}
+		</style>
+		<link rel="stylesheet" href="leaflet.css" />
+		<script src="leaflet.js"></script>
+	</head>
+	<body>
+		<!-- Leaflet Map Container -->
+		<div id="map"></div>
+
+		<!-- Live Status Badge -->
+		<div class="tactical-badge">
+			<div class="pulse-dot"></div>
+			<span>SAT-RECON FEED: LIVE HD</span>
+		</div>
+
+		<!-- Tactical Presets Quick Jump Bar -->
+		<div class="preset-toolbar">
+			<button class="preset-btn" onclick="flyToLocation(-6.2088, 106.8456, 13)">📍 Jakarta</button>
+			<button class="preset-btn" onclick="flyToLocation(-0.973, 116.704, 13)">📍 IKN Nusantara</button>
+			<button class="preset-btn" onclick="flyToLocation(-6.1021, 105.423, 13)">🌋 Krakatau</button>
+			<button class="preset-btn" onclick="flyToLocation(35.6762, 139.6503, 13)">🗼 Tokyo</button>
+			<button class="preset-btn" onclick="flyToLocation(-2.5489, 118.0149, 5)">🌏 Indonesia</button>
+		</div>
+
+		<!-- Tactical Reticle Overlay -->
+		<div class="crosshair-container">
+			<div class="crosshair-circle">
+				<div class="crosshair-h"></div>
+				<div class="crosshair-v"></div>
+				<div class="crosshair-center-dot"></div>
+			</div>
+		</div>
+
+		<!-- Live Coordinate Readout HUD -->
+		<div class="coord-hud" id="coordHud">TARGET CENTER: -06.20880°, +106.84560° | ZOOM: 13x | RECON: ACTIVE</div>
+
+		<script>
+			// 1. Configure Multi-Provider Tile Layers
+			const googleHybrid = L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+				subdomains: ["0", "1", "2", "3"],
+				maxZoom: 20,
+				attribution: "Google Hybrid",
+			});
+
+			const googleSat = L.tileLayer("https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+				subdomains: ["0", "1", "2", "3"],
+				maxZoom: 20,
+				attribution: "Google Satellite",
+			});
+
+			const esriWorld = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+				maxZoom: 19,
+				attribution: "ESRI World Imagery",
+			});
+
+			const osmStandard = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+				maxZoom: 19,
+				attribution: "OpenStreetMap",
+			});
+
+			// 2. Initialize Map Instance (Centered on Jakarta / Indonesia by default)
+			const map = L.map("map", {
+				center: [-6.2088, 106.8456],
+				zoom: 13,
+				layers: [googleHybrid],
+				zoomControl: true,
+				attributionControl: false,
+			});
+
+			// Reposition Zoom Control to bottom-right so top-right is clean
+			map.zoomControl.setPosition("bottomright");
+
+			// 3. Layer Switcher Control (Top Right)
+			const baseLayers = {
+				"🛰️ Google Satellite Hybrid": googleHybrid,
+				"📷 Google Pure Satellite": googleSat,
+				"🌍 ESRI World Imagery": esriWorld,
+				"🗺️ OpenStreetMap Standard": osmStandard,
+			};
+			L.control.layers(baseLayers, null, { position: "topright" }).addTo(map);
+
+			// 4. Update HUD Coordinates on Pan & Zoom
+			function updateHud() {
+				if (!map) return;
+				const c = map.getCenter();
+				const z = map.getZoom();
+				if (!c || typeof c.lat !== "number" || typeof c.lng !== "number") return;
+
+				const latStr = (c.lat >= 0 ? "+" : "") + c.lat.toFixed(5) + "°";
+				const lonStr = (c.lng >= 0 ? "+" : "") + c.lng.toFixed(5) + "°";
+				const hud = document.getElementById("coordHud");
+				if (hud) {
+					hud.innerHTML = `TARGET CENTER: ${latStr}, ${lonStr} | ZOOM: ${z}x | RECON: ACTIVE`;
+				}
+			}
+
+			map.on("move", updateHud);
+			map.on("zoomend", updateHud);
+			updateHud();
+
+			// Trigger size invalidation to make sure tiles fill the container on initial render
+			setTimeout(function () {
+				map.invalidateSize();
+			}, 200);
+
+			window.addEventListener("resize", function () {
+				map.invalidateSize();
+			});
+
+			// 5. JavaScript API callable from Python
+			function flyToLocation(lat, lon, zoom) {
+				if (!map) return;
+				map.flyTo([lat, lon], zoom || 13, {
+					duration: 1.5,
+					easeLinearity: 0.25,
+				});
+			}
+
+			function setCenterCoordinates(lat, lon, zoom) {
+				if (!map) return;
+				map.setView([lat, lon], zoom || 13);
+			}
+		</script>
+	</body>
+</html>

@@ -47,3 +47,14 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     timestamp INTEGER NOT NULL
 );
 """
+
+SQL_CREATE_OPERATORS_TABLE = """
+CREATE TABLE IF NOT EXISTS station_operators (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'Ground Station Operator',
+    created_at INTEGER NOT NULL
+);
+"""

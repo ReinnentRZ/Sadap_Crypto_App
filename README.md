@@ -1,163 +1,134 @@
-# AeroSat GroundStation (Sadap Crypto Intelligence Suite)
+# Sadap GroundStation (Sadap Crypto Intelligence Suite)
 
-Aplikasi Desktop Kriptografi Ganda (*Dual-Mode Chameleon Application*) berbasis **Python 3.13** dan **PyQt6** yang mengusung prinsip **_Plausible Deniability_**.
+Aplikasi Desktop Kriptografi Ganda (*Dual-Mode Chameleon Application*) berbasis **Python 3.13** dan **PyQt6** yang mengusung prinsip **_Plausible Deniability_** (Penyangkalan yang Masuk Akal).
 
-Secara visual publik, aplikasi ini berfungsi normal sebagai **Konsol Observasi Citra Satelit & Telemetri Geospasial** bertema putih minimalis (*Aerospace White*). Namun saat diakses oleh operator terotorisasi melalui **Autentikasi Multi-Faktor Zero-Trust** (Hardware USB Dongle + Biometrik Wajah AI + Hash Passcode), aplikasi akan membuka instrumen spionase dan brankas kriptografi penuh.
+Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, penampil citra satelit asli bumi beresolusi tinggi, pelacak orbit satelit nyata, jadwal lintasan (*AOS/LOS pass*), dan terminal log telemetri langsung.
+
+**Tidak ada tombol rahasia apa pun di layar.** Akses ke **Brankas Kriptografi Hitam (*BlackOps Vault*)** hanya dapat dibuka melalui kombinasi tombol rahasia (**`Ctrl + Shift + S`**) yang dilindungi oleh **Autentikasi Multi-Faktor Zero-Trust** (Hardware USB Dongle + Biometrik Wajah AI + Hash Passcode).
 
 ---
 
-## 🌟 Fitur Utama & Spesifikasi Keamanan
+## 🌟 Arsitektur & Alur Operasional Sistem
 
 ```mermaid
 flowchart TD
-    subgraph Gatekeeper ["1. Layer Autentikasi 3-Faktor (Zero-Trust)"]
-        USB["Hardware USB Dongle Key\n(HMAC Signature + Volume Serial)"] --> Face["AI Biometric Face Recognition\n(OpenCV YuNet + SFace Cosine)"]
-        Face --> Hash["Master Clearance Passcode\n(PBKDF2-HMAC-SHA256 ber-Salt)"]
-        Hash --> Covert["Buka Brankas Intelijen (Covert Vault)"]
+    Start([1. Buka Aplikasi]) --> Portal["2. Portal Login & Register Operator Biasa\n(Tersimpan dengan Hash PBKDF2 di SQLite)"]
+    Portal -->|Login Berhasil| Cover["3. Konsol Satelit 'Sadap GroundStation' (Cover Mode)\n(Peta Orbit, Citra Asli Bumi, Telemetri, Pass Schedule)"]
+    
+    Cover -.->|HANYA via Hotkey Rahasia:\nCtrl + Shift + S| Gatekeeper["4. Gatekeeper Otorisasi 3-Faktor (Zero-Trust)"]
+    
+    subgraph ZeroTrustGate ["Verifikasi 3-Faktor"]
+        Gatekeeper --> F1["Faktor 1: Hardware USB Dongle (HMAC Signature + Volume Serial)"]
+        F1 --> F2["Faktor 2: AI Face Biometric (YuNet + SFace Cosine Matching)"]
+        F2 --> F3["Faktor 3: Master Clearance Passcode (PBKDF2-HMAC-SHA256 Hash)"]
     end
-
-    subgraph VaultModules ["2. Modul Kriptografi & Keamanan"]
-        Covert --> M1["Super-Enkripsi Teks\n(Extended Vigenère + RSA-OAEP 2048-bit)"]
-        Covert --> M2["Enkripsi File Streaming\n(AES-256-GCM Authenticated AEAD)"]
-        Covert --> M3["Steganografi Citra Satelit\n(LSB Lossless + Pra-Enkripsi AES)"]
-        Covert --> M4["Basis Data Terenkripsi\n(SQLite Field-Level Encryption at Rest)"]
-        Covert --> M5["Simple Blockchain Ledger\n(SHA-256 Chaining + Proof of Work)"]
+    
+    F3 -->|Akses Diberikan| SecretVault["5. Brankas Kriptografi Rahasia (Covert Vault)"]
+    
+    subgraph CryptoSuite ["Modul Kriptografi & Keamanan"]
+        SecretVault --> M1["Super-Enkripsi Teks (Extended Vigenère + RSA-OAEP 2048-bit)"]
+        SecretVault --> M2["Enkripsi File Streaming (AES-256-GCM AEAD Tag)"]
+        SecretVault --> M3["Steganografi Citra Satelit (LSB Lossless + Pra-Enkripsi AES)"]
+        SecretVault --> M4["Basis Data Terenkripsi (SQLite Field-Level Encryption at Rest)"]
+        SecretVault --> M5["Simple Blockchain Ledger (SHA-256 Chaining + Proof of Work)"]
     end
 ```
 
-### 1. Zero-Trust 3-Factor Gatekeeper
-* **Faktor 1 (Hardware Possession)**: Dongle USB fisik diverifikasi melalui pencocokan *Hardware Volume Serial Number* dan tanda tangan digital HMAC-SHA256 pada file `aerosat.sig`.
-* **Faktor 2 (Biometric Factor)**: Face Recognition realtime menggunakan **OpenCV YuNet** (deteksi & alignment wajah 5-titik) dan **SFace** (representasi 128-D embedding & *cosine similarity*). Model berjalan **100% offline**.
-* **Faktor 3 (Knowledge Factor)**: Verifikasi kredensial menggunakan **PBKDF2-HMAC-SHA256** dengan 200.000 iterasi dan *salt* 16-byte unik per-pengguna serta *constant-time comparison*.
+---
 
-### 2. Super-Enkripsi Teks (Vigenère + RSA-OAEP)
-* **Kriptografi Klasik**: *Extended Vigenère Cipher* pada ruang modulo 256 (bebas kehilangan karakter pada spasi, tanda baca, emoji, angka, dan baris baru).
-* **Kriptografi Modern**: *RSA-2048/4096-bit* dengan skema padding standar industri **RSA-OAEP (SHA-256 + MGF1)**.
-* **Chunking Otomatis**: Mendukung enkripsi pesan teks dengan panjang tak terbatas.
+## 🛰️ Fitur Halaman Cover (Padat & Fungsional)
 
-### 3. Enkripsi Berkas (AES-256-GCM Streaming)
-* Menggunakan mode **AEAD (Authenticated Encryption with Associated Data)** untuk menjamin kerahasiaan sekaligus integritas data (*16-byte authentication tag*).
-* Pemrosesan *stream chunk* (buffer 64 KB) sehingga sangat ringan untuk file berukuran besar (PDF, video, citra satelit, ZIP).
-* Menyimpan dan memulihkan nama dan ekstensi berkas asli secara otomatis.
-
-### 4. Steganografi Citra Satelit (LSB)
-* Menyisipkan muatan data rahasia ke dalam bit terendah (*Least Significant Bit*) kanal warna RGB citra *lossless* (PNG/BMP).
-* Vektorisasi NumPy instan dengan *header biner 9-byte* `[Magic 'AERO' 4B] + [Flags 1B] + [Length 4B]`.
-* Mendukung pra-enkripsi **AES-256-GCM** sebelum disisipkan ke piksel citra (*Crypto-Stego Hybrid*).
-* Menghitung nilai distorsi visual **PSNR (Peak Signal-to-Noise Ratio)** secara otomatis (rata-rata > 60 dB, tidak kasat mata).
-
-### 5. Basis Data Terenkripsi Lokal (Encryption at Rest)
-* Menggunakan basis data SQLite (`data/vault.db`).
-* Seluruh kolom sensitif (isi memo, nama berkas rahasia, preview steganografi, dan detail audit log) dienkripsi menggunakan AES-256-GCM sebelum ditulis ke disk.
-
-### 6. Simple Blockchain untuk Integritas Aset
-* Struktur data blok abadi dengan hashing **SHA-256** dan konsensus **Proof of Work (PoW)**.
-* Notarisasi berkas intelijen: Menghitung sidik jari SHA-256 berkas dan menguncinya ke dalam blok blockchain.
-* Fungsi audit rantai `is_chain_valid()`: Mendeteksi manipulasi data masa lalu secara instan.
+Halaman Cover dirancang sangat meyakinkan dan fungsional:
+1. **Citra Satelit Asli Bumi Resolusi Tinggi**:
+   - Memuat foto satelit riil dari server observasi bumi (ESRI World Imagery / Landsat / Sentinel-2).
+   - Preset lokasi nyata: **Jakarta Metropolitan**, **IKN Nusantara**, **Selat Sunda & Gunung Krakatau**, **Tokyo Bay**, dan **Gunung Fuji**.
+   - Filter multi-spektral interaktif: *RGB True Color*, *Thermal Infrared Radiance*, *NDVI Vegetation Index*, dan *False Color Urban*.
+2. **Pelacak Satelit Nyata & Peta Orbit**:
+   - Pelacakan satelit riil: **SADAP-SV09**, **ISS (Stasiun Luar Angkasa Internasional)**, **Landsat-9**, **Sentinel-2A**, dan **NOAA-20**.
+   - Peta radar animasi koordinat lintang dan bujur realtime.
+3. **Panel Sensor Telemetri & Daya**:
+   - Menampilkan *Orbit Altitude*, *Ground Velocity*, *Downlink Frequency*, *Antenna Azimuth*, *Signal SNR*, daya panel surya (*Solar Array Watts*), dan indikator baterai satelit.
+4. **Jadwal Lintasan Orbit (*AOS/LOS Pass Prediction Schedule*)**:
+   - Tabel prediksi waktu melintas satelit di atas stasiun bumi (*Acquisition of Signal*, *Max Elevation*, *Duration*).
+5. **Terminal Log Telemetri Real-Time (*Live Stream*)**:
+   - Menampilkan streaming bingkai data telemetri yang ter-dekode secara langsung setiap beberapa detik.
+6. **Sesi Operator**:
+   - Menampilkan identitas operator yang sedang bertugas (*Callsign* & *Mission Role*) dan tombol *Sign Out*.
 
 ---
 
-## 🚀 Panduan Instalasi & Persiapan
+## 🔐 Spesifikasi Modul Kriptografi & Keamanan
 
-### 1. Prasyarat Sistem
-* **Python**: Versi 3.13 (atau 3.11+) pada Windows / Linux / macOS.
-* **Webcam**: Kamera laptop atau eksternal (tersedia juga opsi verifikasi via foto).
+* **Autentikasi Operator Biasa**: Disimpan dalam tabel `station_operators` dengan hash **PBKDF2-HMAC-SHA256** dan *salt* unik 16-byte.
+* **USB Hardware Dongle**: Memverifikasi *Volume Serial Number* fisik perangkat keras flashdisk dan *HMAC-SHA256 signature token* pada file `aerosat.sig`.
+* **Biometrik Wajah AI**: Menggunakan model Deep Learning mutakhir **OpenCV 5 YuNet** (deteksi & landmark 5-titik) dan **SFace** (128-D embedding & *cosine similarity*). Berjalan **100% offline** tanpa ketergantungan internet.
+* **Super-Enkripsi Teks**: Kombinasi kriptografi klasik **Extended Vigenère Cipher** (modulo 256) dan modern **RSA-OAEP 2048-bit** dengan mekanisme pemecahan blok otomatis (*chunking*).
+* **Enkripsi File AES**: Menggunakan **AES-256-GCM (Authenticated Encryption with Associated Data)** dengan streaming buffer 64 KB, proteksi pemalsuan tag, dan pemulihan nama berkas asli.
+* **Steganografi Citra LSB**: Vektorisasi NumPy instan untuk menyisipkan pesan/berkas rahasia ke bit LSB kanal warna RGB citra satelit lossless (PNG/BMP) dengan metrik PSNR > 60 dB (tak kasat mata).
+* **Basis Data Terenkripsi**: SQLite `data/vault.db` dengan *field-level encryption* otomatis menggunakan AES-256-GCM.
+* **Simple Blockchain**: Rantai blok dengan hashing SHA-256, konsensus *Proof of Work (PoW)*, notarisasi sidik jari file, dan deteksi pemalsuan data seketika (`is_chain_valid`).
 
-### 2. Setup Virtual Environment & Dependensi
-```bash
-# Masuk ke direktori proyek
+---
+
+## 🚀 Panduan Menjalankan Aplikasi
+
+### 1. Menjalankan Aplikasi
+```powershell
 cd D:\Sadap-Crypto-App
-
-# Aktifkan virtual environment
-.\.venv\Scripts\Activate.ps1
-
-# Instal seluruh dependensi
-pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py
 ```
+
+### 2. Kredensial Akses Bawaan (Default Demo Credentials)
+
+| Layanan | Username / Callsign | Password / Passcode | Keterangan |
+| :--- | :--- | :--- | :--- |
+| **Portal Operator Biasa** | `operator` | `operator123` | Masuk ke Cover Stasiun Satelit biasa (atau daftar akun baru) |
+| **Passcode Master Vault** | `COMMANDER-01` | `Sadap-Commander-2026!` | Digunakan pada dialog otorisasi 3-faktor gerbang rahasia |
 
 ---
 
-## 🎮 Panduan Menjalankan & Skenario Demonstrasi
+## 🎮 Skenario Demonstrasi Lengkap
 
-### Menjalankan Aplikasi
-```bash
-python main.py
-```
-
-### Langkah Skenario Demo:
-
-#### 1. Masuk ke Mode Publik (Cover Mode)
-* Aplikasi akan terbuka dengan antarmuka **Konsol Observasi Satelit** bertema putih minimalis.
-* Amati peta animasi satelit yang bergerak secara realtime di sebelah kiri, telemetri ketinggian dan kecepatan orbit, serta citra satelit di sebelah kanan.
-
-#### 2. Memicu Gerbang Rahasia (*Secret Gatekeeper*)
-* Klik tombol **"📡 Secure Uplink (Restricted)"** di sudut kanan bawah, atau tekan kombinasi *hotkey* rahasia:
-  ```text
-  Ctrl + Shift + S
-  ```
-* Jendela modal otorisasi 3-faktor akan muncul:
-  1. **USB Dongle**: Sistem otomatis mendeteksi flashdisk USB (atau virtual dongle di `data/virtual_dongle/`).
-  2. **Biometrik Wajah**: Klik **"Start Camera"** untuk pemindaian webcam langsung, atau gunakan tombol **"Verify via Photo..."** untuk verifikasi dari file foto.
-  3. **Passcode**: Masukkan passcode master default:
+1. **Langkah 1: Masuk Melalui Portal Operator**
+   - Jalankan `main.py`. Jendela **Operator Sign In** akan muncul.
+   - Masukkan username `operator` dan password `operator123` (atau klik tab **"Register New Operator"** untuk mendaftarkan akun baru).
+   - Klik **"Sign In to Ground Station"**.
+2. **Langkah 2: Menjelajahi Cover Mode Satelit**
+   - Konsol stasiun satelit **Sadap GroundStation** akan terbuka.
+   - Ganti pilihan lokasi citra satelit (misal: *IKN Nusantara*, *Jakarta*, *Mount Krakatau*), ganti filter citra (*Thermal IR*, *NDVI*), dan ganti target satelit (*ISS*, *Landsat-9*).
+   - Perhatikan bahwa **tidak ada tombol rahasia apa pun** di antarmuka ini.
+3. **Langkah 3: Memicu Gerbang Rahasia (The Secret Trigger)**
+   - Tekan kombinasi tombol rahasia pada keyboard:
      ```text
-     AeroSat-Commander-2026!
+     Ctrl + Shift + S
      ```
-* Klik **"🔓 Unlock Classified Vault"** untuk membuka brankas rahasia.
-
-#### 3. Eksplorasi 5 Tab Brankas Kriptografi
-1. **Tab 1: Super-Cipher Memo (Vigenère + RSA)**:
-   - Ketik pesan rahasia di panel kiri, tentukan kunci Vigenère, lalu klik **"Execute Super-Encryption"**.
-   - Salin token Base64 yang dihasilkan ke panel kanan, lalu klik **"Execute Super-Decryption"** untuk membuktikan pesan dapat dipulihkan secara presisi.
-2. **Tab 2: File AES-256 Vault**:
-   - Pilih berkas apa saja (misal file teks, PDF, atau gambar), masukkan passphrase, lalu klik **"Encrypt File"**. File akan terenkripsi menjadi berkas biner `.enc`.
-   - Pilih berkas `.enc` tersebut, lalu klik **"Decrypt File"** untuk mengembalikan berkas asli.
-3. **Tab 3: Satellite Stego Lab**:
-   - Pilih citra satelit penutup (*cover image*), masukkan teks rahasia dan passphrase opsional, lalu klik **"Embed Secret Payload"**.
-   - Pada panel kanan, pilih gambar stego yang dihasilkan lalu klik **"Extract Secret Payload"** untuk membaca pesan yang tersembunyi di balik piksel citra.
-4. **Tab 4: Encrypted DB Vault**:
-   - Buka tab ini untuk melihat tabel memo rahasia, arsip file, dan log audit.
-   - Perhatikan bahwa jika file `data/vault.db` dibuka dengan aplikasi DB Browser luar tanpa passphrase, isinya terkunci dan tidak dapat dibaca.
-5. **Tab 5: Blockchain Ledger**:
-   - Lihat riwayat blok dan transaksi aset digital.
-   - Klik **"🛡️ Audit Chain Integrity"** untuk memverifikasi keabsahan seluruh rantai hash SHA-256.
-   - Klik **"📜 Notarize File..."** untuk mendaftarkan sidik jari dokumen rahasia ke dalam blok baru.
-
-#### 4. Mengunci Kembali ke Mode Cover
-* Klik tombol merah **"🔒 Lock & Return to Cover Mode"** di pojok kanan atas.
-* Sesi rahasia akan ditutup, kredensial dibersihkan dari memori, dan aplikasi kembali menjadi stasiun satelit biasa.
+   - Modal otorisasi **Zero-Trust 3-Factor** akan muncul:
+     - **Faktor 1 (USB)**: Otomatis mendeteksi USB dongle (tersedia virtual dongle bawaan di `data/virtual_dongle/`).
+     - **Faktor 2 (Face)**: Nyalakan webcam untuk scan wajah, atau pilih verifikasi foto/simulasi.
+     - **Faktor 3 (Passcode)**: Masukkan passcode master `Sadap-Commander-2026!`.
+   - Klik **"🔓 Unlock Classified Vault"**.
+4. **Langkah 4: Operasi Brankas Kriptografi**
+   - Jendela stasiun satelit disembunyikan dan jendela **Sadap Classified Vault** akan terbuka.
+   - Gunakan 5 tab instrumen kripto:
+     - 📜 **Super-Cipher**: Enkripsi dan dekripsi pesan rahasia ganda (Vigenère + RSA).
+     - 📁 **File AES-256**: Enkripsi berkas apa saja menjadi format biner `.enc` dan dekripsi kembali.
+     - 🛰️ **Stego Lab**: Sisipkan pesan rahasia ke dalam citra satelit dan ekstrak kembali.
+     - 🗄️ **DB Vault**: Akses tabel SQLite yang terenkripsi penuh di disk.
+     - ⛓️ **Blockchain**: Lakukan audit integritas rantai blok dan daftarkan sidik jari berkas.
+5. **Langkah 5: Mengunci Kembali ke Mode Cover**
+   - Klik tombol merah **"🔒 Lock & Return to Cover Mode"** di pojok kanan atas.
+   - Brankas rahasia langsung tertutup dan jendela stasiun satelit muncul kembali tanpa jejak.
 
 ---
 
-## 🛠️ Alat Bantu Mandiri (CLI Tools)
+## 🧪 Pengujian Unit & Integrasi Otomatis
 
-1. **Inisialisasi USB Dongle Nyata (Flashdisk Fisik)**:
-   ```bash
-   python tools/setup_dongle.py
-   ```
-2. **Pendaftaran Wajah Operator Baru**:
-   ```bash
-   python tools/register_face.py
-   ```
+Seluruh modul telah diuji menggunakan **53 automated unit tests** dengan hasil kelulusan **100%**:
 
----
+```powershell
+# Menjalankan seluruh 53 unit test proyek
+.\.venv\Scripts\python.exe -m unittest discover tests
 
-## 🧪 Menjalankan Automated Unit Tests
-
-Seluruh modul dilengkapi pengujian unit otomatis komprehensif (52 test cases):
-
-```bash
-# Menjalankan seluruh 52 test suite proyek
-python -m unittest discover tests
-
-# Atau menjalankan pengujian skenario misi End-to-End
-python -m unittest tests/test_end_to_end.py
+# Menjalankan pengujian skenario misi End-to-End
+.\.venv\Scripts\python.exe -m unittest tests/test_end_to_end.py
 ```
-
----
-
-## 📂 Struktur Direktori Proyek
-
-Rincian arsitektur berkas dan pemisahan tanggung jawab (*separation of concerns*) dapat dilihat pada dokumen:
-* 📄 **[struktur.md](struktur.md)** — Struktur direktori dan pohon file.
-* 📄 **[context.md](context.md)** — Konteks dan filosofi desain Plausible Deniability.
-* 📄 **[planning.md](planning.md)** — Roadmap dan rincian langkah kerja Fase 1 - 9.

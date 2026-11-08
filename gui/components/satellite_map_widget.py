@@ -1,6 +1,6 @@
 """
-AeroSat GroundStation - Satellite Orbital Tracking Canvas Widget
-Draws an animated geospatial orbital track, Earth coordinate grid, and telemetry telemetry
+Sadap GroundStation - Satellite Orbital Tracking Canvas Widget
+Draws an animated geospatial orbital track, Earth coordinate grid, and telemetry
 for the public Cover Mode interface.
 """
 import math
@@ -15,14 +15,20 @@ class SatelliteMapWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumSize(420, 260)
+        self.setMinimumSize(420, 240)
         self.orbit_angle = 45.0  # degrees
-        self.satellite_callsign = "AEROSAT-SV09"
+        self.satellite_callsign = "SADAP-SV09"
 
         # Telemetry timer
         self.anim_timer = QTimer(self)
         self.anim_timer.timeout.connect(self._step_simulation)
         self.anim_timer.start(100)  # 10 Hz refresh
+
+    def set_satellite(self, callsign: str, initial_angle: float = 45.0):
+        """Update tracked satellite callsign and position."""
+        self.satellite_callsign = callsign
+        self.orbit_angle = initial_angle
+        self.update()
 
     def _step_simulation(self):
         """Advance satellite along simulated orbital path."""

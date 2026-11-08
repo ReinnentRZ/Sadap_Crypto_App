@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QKeySequence, QShortcut
 
 from config.settings import DATA_DIR
 from core.auth.hasher import hash_password, verify_password
@@ -168,6 +169,17 @@ class SecretDashboardWindow(QMainWindow):
 
         header_bar.addStretch()
 
+        # Fullscreen Toggle Button & Shortcut
+        self.btn_fullscreen = QPushButton("⛶ Fullscreen (F11)")
+        self.btn_fullscreen.setObjectName("secondaryBtn")
+        self.btn_fullscreen.setStyleSheet("padding: 8px 12px; font-size: 11px;")
+        self.btn_fullscreen.clicked.connect(self._toggle_fullscreen)
+        header_bar.addWidget(self.btn_fullscreen)
+
+        # F11 Shortcut for True Fullscreen Toggle
+        self.f11_shortcut = QShortcut(QKeySequence("F11"), self)
+        self.f11_shortcut.activated.connect(self._toggle_fullscreen)
+
         # Change Master Code Button
         self.btn_change_code = QPushButton("🔑 Change Master Code")
         self.btn_change_code.setObjectName("secondaryBtn")
@@ -242,3 +254,14 @@ class SecretDashboardWindow(QMainWindow):
             self.close()
             if self.parent():
                 self.parent().showMaximized()
+
+    def _toggle_fullscreen(self):
+        """Toggle between Fullscreen and Maximized mode."""
+        if self.isFullScreen():
+            self.showMaximized()
+            if hasattr(self, "btn_fullscreen"):
+                self.btn_fullscreen.setText("⛶ Fullscreen (F11)")
+        else:
+            self.showFullScreen()
+            if hasattr(self, "btn_fullscreen"):
+                self.btn_fullscreen.setText("🗗 Windowed (F11)")

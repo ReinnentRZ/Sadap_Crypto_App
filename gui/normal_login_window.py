@@ -99,8 +99,12 @@ class NormalLoginWindow(QMainWindow):
     def _toggle_fullscreen(self):
         if self.isFullScreen():
             self.showMaximized()
+            if hasattr(self, "btn_fullscreen"):
+                self.btn_fullscreen.setText("⛶ Fullscreen (F11)")
         else:
             self.showFullScreen()
+            if hasattr(self, "btn_fullscreen"):
+                self.btn_fullscreen.setText("🗗 Windowed (F11)")
 
     def _create_form_group(self, label_text: str, widget: QWidget) -> QWidget:
         """Create a neatly aligned form field block with tight label and input."""
@@ -127,7 +131,20 @@ class NormalLoginWindow(QMainWindow):
 
         # Main layout centering the login card
         main_layout = QVBoxLayout(bg_canvas)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setContentsMargins(20, 16, 20, 20)
+
+        # Top utility bar (Fullscreen toggle)
+        top_bar = QHBoxLayout()
+        top_bar.addStretch()
+        self.btn_fullscreen = QPushButton("⛶ Fullscreen (F11)")
+        self.btn_fullscreen.setObjectName("secondaryBtn")
+        self.btn_fullscreen.setStyleSheet(
+            "padding: 5px 12px; font-size: 11px; background-color: rgba(255, 255, 255, 0.85); "
+            "border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; color: #475569;"
+        )
+        self.btn_fullscreen.clicked.connect(self._toggle_fullscreen)
+        top_bar.addWidget(self.btn_fullscreen)
+        main_layout.addLayout(top_bar)
 
         main_layout.addStretch()
 

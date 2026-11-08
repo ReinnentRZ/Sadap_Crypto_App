@@ -2,3 +2,6 @@
 /build
 /dist
 main.spec
+AeroSatGroundStation.spec
+/installer
+installer.iss

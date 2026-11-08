@@ -13,10 +13,11 @@ from PyQt6.QtWidgets import QApplication
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config.settings import STYLES_DIR
+from config.settings import STYLES_DIR, ICONS_DIR
 from gui.normal_login_window import NormalLoginWindow
 from gui.main_cover_window import MainCoverWindow
 from core.utils.logger import get_logger
+from PyQt6.QtGui import QIcon
 
 logger = get_logger("SadapMain")
 
@@ -72,6 +73,11 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Sadap GroundStation")
     app.setOrganizationName("Sadap Security Labs")
+
+    # Set Application Window Icon
+    app_icon_file = ICONS_DIR / "app_icon.png"
+    if app_icon_file.exists():
+        app.setWindowIcon(QIcon(str(app_icon_file)))
 
     # Apply White/Light Aerospace Theme
     load_stylesheet(app)

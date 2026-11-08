@@ -1,15 +1,34 @@
 """
 Sadap GroundStation (Sadap Crypto) - System Configuration Settings
 """
+import sys
 from pathlib import Path
 
-# Base Paths
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-ASSETS_DIR = BASE_DIR / "assets"
+# Base Paths detection (Frozen .exe vs Development environment)
+if getattr(sys, "frozen", False):
+    # Running as compiled binary from PyInstaller
+    BASE_DIR = Path(sys.executable).resolve().parent
+    BUNDLE_DIR = Path(getattr(sys, "_MEIPASS", BASE_DIR))
+else:
+    # Running from source in development
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    BUNDLE_DIR = BASE_DIR
+
+# Read-only assets directory (prioritize bundle directory, fallback to _internal, then BASE_DIR)
+ASSETS_DIR = BUNDLE_DIR / "assets"
+if not ASSETS_DIR.exists():
+    ASSETS_DIR = BASE_DIR / "_internal" / "assets"
+if not ASSETS_DIR.exists():
+    ASSETS_DIR = BASE_DIR / "assets"
+
+MAP_DIR = ASSETS_DIR / "map"
 ICONS_DIR = ASSETS_DIR / "icons"
 SAMPLE_IMAGES_DIR = ASSETS_DIR / "sample_images"
 STYLES_DIR = ASSETS_DIR / "styles"
+MODELS_DIR = ASSETS_DIR / "models"
+
+# Persistent user data directory (always located next to executable or project root)
+DATA_DIR = BASE_DIR / "data"
 
 # Ensure runtime directories exist
 DATA_DIR.mkdir(parents=True, exist_ok=True)

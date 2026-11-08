@@ -91,8 +91,28 @@ Sistem menggunakan model deep neural network canggih **YuNet** dan **SFace** (10
 
 ### 3. Passcode Master Clearance (Faktor 3)
 
-Passcode master diverifikasi menggunakan derivasi kunci **PBKDF2-HMAC-SHA256** (200.000 iterasi dengan salt kriptografis unik).
+Passcode master diverifikasi menggunakan derivasi kunci **PBKDF2-HMAC-SHA256** (200.000 iterasi dengan salt kriptografis unik) yang tersimpan pada `data/keys/master_credential.hash`.
 * **Default Master Code**: `Sadap-Commander-2026!`
+
+#### Cara Mengganti Master Passcode:
+Anda dapat mengganti Master Passcode kapan saja melalui **dua cara**:
+
+1. **Cara 1: Melalui GUI di dalam Brankas Rahasia (Covert Vault)**:
+   - Buka brankas rahasia (`Ctrl + Shift + S` $\to$ selesaikan 3-Faktor $\to$ Unlock).
+   - Di bar atas (*header*) sebelah tombol merah, klik tombol **`🔑 Change Master Code`**.
+   - Masukkan *Current Passcode*, *New Passcode* (min 8 karakter), dan konfirmasi.
+   - Klik **💾 Save New Passcode**. Perubahan langsung tersimpan ke hash dan dicatat di audit log basis data terenkripsi.
+
+2. **Cara 2: Melalui Terminal (CLI Utility)**:
+   - Buka terminal PowerShell dan jalankan:
+     ```powershell
+     python tools/change_mastercode.py
+     ```
+   - Masukkan passcode lama, lalu ketik passcode baru dan konfirmasi.
+   - *Jika Anda lupa passcode lama*, Anda dapat menggunakan flag reset langsung:
+     ```powershell
+     python tools/change_mastercode.py --reset
+     ```
 
 ---
 

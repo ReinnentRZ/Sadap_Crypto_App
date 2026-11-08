@@ -1,5 +1,5 @@
 """
-AeroSat GroundStation (Sadap Crypto) - System Configuration Settings
+Sadap GroundStation (Sadap Crypto) - System Configuration Settings
 """
 from pathlib import Path
 

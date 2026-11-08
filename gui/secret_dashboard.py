@@ -1,5 +1,5 @@
 """
-AeroSat GroundStation - Classified Covert Intelligence Dashboard Window
+Sadap GroundStation - Classified Covert Intelligence Dashboard Window
 Hosts the full cryptography suite: Super-Cipher, AES Files, Stego Lab, DB Vault, and Blockchain.
 """
 from PyQt6.QtWidgets import (
@@ -32,7 +32,7 @@ class SecretDashboardWindow(QMainWindow):
     def __init__(self, operator_callsign: str = "COMMANDER-ALPHA-01", parent=None):
         super().__init__(parent)
         self.operator_callsign = operator_callsign
-        self.setWindowTitle("AeroSat GroundStation — Classified Covert Crypto Suite [BLACKOPS]")
+        self.setWindowTitle("Sadap GroundStation — Classified Covert Crypto Suite [BLACKOPS]")
         self.resize(1080, 720)
         self.setMinimumSize(960, 640)
 
@@ -50,7 +50,7 @@ class SecretDashboardWindow(QMainWindow):
         header_bar = QHBoxLayout()
 
         badge_layout = QVBoxLayout()
-        title_lbl = QLabel("🛰️ AEROSAT CLASSIFIED INTELLIGENCE VAULT")
+        title_lbl = QLabel("🛰️ SADAP CLASSIFIED INTELLIGENCE VAULT")
         title_lbl.setStyleSheet("font-size: 16px; font-weight: bold; color: #0284C7;")
         badge_layout.addWidget(title_lbl)
 
@@ -121,4 +121,4 @@ class SecretDashboardWindow(QMainWindow):
                 pass
             self.close()
             if self.parent():
-                self.parent().show()
+                self.parent().showMaximized()

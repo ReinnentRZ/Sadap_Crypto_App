@@ -1,5 +1,5 @@
 """
-AeroSat GroundStation - Gatekeeper Auth Dialog (3-Factor Zero-Trust)
+Sadap GroundStation - Gatekeeper Auth Dialog (3-Factor Zero-Trust)
 Verifies: 1. Hardware USB Dongle + 2. AI Face Recognition + 3. Master Passcode Hash
 """
 from pathlib import Path
@@ -24,7 +24,7 @@ from core.utils.logger import get_logger
 logger = get_logger("AuthDialog")
 
 CREDENTIAL_FILE = DATA_DIR / "keys" / "master_credential.hash"
-DEFAULT_MASTER_PASSCODE = "AeroSat-Commander-2026!"
+DEFAULT_MASTER_PASSCODE = "Sadap-Commander-2026!"
 
 
 def get_or_create_master_credential() -> str:
@@ -47,7 +47,7 @@ class AuthDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("AeroSat Secure Uplink — Operator Authorization")
+        self.setWindowTitle("Sadap Secure Uplink — Operator Authorization")
         self.setFixedSize(480, 620)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
 
@@ -110,7 +110,6 @@ class AuthDialog(QDialog):
         self.pass_input = QLineEdit()
         self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.pass_input.setPlaceholderText("Enter master clearance passcode...")
-        self.pass_input.setText(DEFAULT_MASTER_PASSCODE)  # Default convenience for demo
         pass_layout.addWidget(self.pass_input)
         layout.addWidget(pass_group)
 
@@ -178,6 +177,7 @@ class AuthDialog(QDialog):
             QMessageBox.warning(self, "Warning", "Factor 3: Master Passcode cannot be empty.")
             return
 
+        self.stored_hash = get_or_create_master_credential()
         is_password_valid = verify_password(entered_pass, self.stored_hash)
         if not is_password_valid:
             QMessageBox.critical(

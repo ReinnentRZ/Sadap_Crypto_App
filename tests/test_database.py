@@ -131,6 +131,30 @@ class TestDatabaseVault(unittest.TestCase):
         # Content must be locked!
         self.assertEqual(memos[0]["content"], "[ENCRYPTED_DATA_LOCKED]")
 
+    def test_operator_registration_and_authentication(self):
+        # 1. Verify default operator seeded
+        ok_def, user_def, msg_def = self.db.authenticate_operator("operator", "operator123")
+        self.assertTrue(ok_def)
+        self.assertEqual(user_def["username"], "operator")
+
+        # Wrong password fails
+        ok_wrong, _, _ = self.db.authenticate_operator("operator", "wrongpass")
+        self.assertFalse(ok_wrong)
+
+        # 2. Register a new operator
+        ok_reg, reg_msg = self.db.register_operator("budi", "budiSecure2026!", full_name="Budi Santoso", role="Observation Specialist")
+        self.assertTrue(ok_reg)
+
+        # Duplicate username rejected
+        ok_dup, dup_msg = self.db.register_operator("budi", "otherpass")
+        self.assertFalse(ok_dup)
+
+        # Authenticate new operator
+        ok_auth, user_budi, _ = self.db.authenticate_operator("budi", "budiSecure2026!")
+        self.assertTrue(ok_auth)
+        self.assertEqual(user_budi["full_name"], "Budi Santoso")
+        self.assertEqual(user_budi["role"], "Observation Specialist")
+
 
 if __name__ == "__main__":
     unittest.main()

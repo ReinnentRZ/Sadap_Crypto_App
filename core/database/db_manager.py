@@ -14,7 +14,9 @@ from core.database.models import (
     SQL_CREATE_FILES_TABLE,
     SQL_CREATE_STEGO_TABLE,
     SQL_CREATE_AUDIT_TABLE,
+    SQL_CREATE_OPERATORS_TABLE,
 )
+from core.auth.hasher import hash_password, verify_password
 from core.utils.logger import get_logger
 
 logger = get_logger("DBVault")
@@ -23,10 +25,11 @@ logger = get_logger("DBVault")
 class VaultDatabaseManager:
     """Manages SQLite database with transparent AES-256 field-level encryption."""
 
-    def __init__(self, db_path: Path | str = DB_PATH, vault_passphrase: str = "AeroSat-Master-Passphrase-2026"):
+    def __init__(self, db_path: Path | str = DB_PATH, vault_passphrase: str = "Sadap-Master-Passphrase-2026"):
         self.db_path = Path(db_path)
         self.vault_passphrase = vault_passphrase
         self._init_database()
+        self._seed_default_operator()
 
     @contextlib.contextmanager
     def _get_connection(self):
@@ -47,8 +50,100 @@ class VaultDatabaseManager:
             cursor.execute(SQL_CREATE_FILES_TABLE)
             cursor.execute(SQL_CREATE_STEGO_TABLE)
             cursor.execute(SQL_CREATE_AUDIT_TABLE)
+            cursor.execute(SQL_CREATE_OPERATORS_TABLE)
             conn.commit()
         logger.info(f"Database vault initialized at {self.db_path}")
+
+    def _seed_default_operator(self):
+        """Seed default ground station operator account (operator / operator123)."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM station_operators")
+                count = cursor.fetchone()[0]
+                if count == 0:
+                    default_user = "operator"
+                    default_pwd = "operator123"
+                    pwd_hash = hash_password(default_pwd)
+                    now = int(time.time())
+                    cursor.execute(
+                        """
+                        INSERT INTO station_operators (username, password_hash, full_name, role, created_at)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (default_user, pwd_hash, "Ground Station Primary Operator", "Station Specialist", now)
+                    )
+                    conn.commit()
+                    logger.info("Default station operator seeded: 'operator' / 'operator123'")
+        except Exception as e:
+            logger.warning(f"Could not seed default operator: {e}")
+
+    def register_operator(
+        self,
+        username: str,
+        password: str,
+        full_name: str = "Station Operator",
+        role: str = "Ground Station Operator"
+    ) -> tuple[bool, str]:
+        """Register a new normal station operator with PBKDF2 hashed password."""
+        user = username.strip().lower()
+        if not user or len(user) < 3:
+            return False, "Username must be at least 3 characters long."
+        if not password or len(password) < 4:
+            return False, "Password must be at least 4 characters long."
+
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM station_operators WHERE username = ?", (user,))
+                if cursor.fetchone():
+                    return False, f"Username '{user}' is already registered."
+
+                pwd_hash = hash_password(password)
+                now = int(time.time())
+                cursor.execute(
+                    """
+                    INSERT INTO station_operators (username, password_hash, full_name, role, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (user, pwd_hash, full_name.strip() or "Station Operator", role, now)
+                )
+                conn.commit()
+                return True, f"Operator '{user}' registered successfully."
+        except Exception as e:
+            return False, f"Registration failed: {str(e)}"
+
+    def authenticate_operator(self, username: str, password: str) -> tuple[bool, dict | None, str]:
+        """Authenticate a station operator credentials using PBKDF2 hash verification."""
+        user = username.strip().lower()
+        if not user or not password:
+            return False, None, "Please enter both username and password."
+
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT id, username, password_hash, full_name, role, created_at FROM station_operators WHERE username = ?",
+                    (user,)
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return False, None, "Operator username not found."
+
+                stored_hash = row["password_hash"]
+                if verify_password(password, stored_hash):
+                    user_data = {
+                        "id": row["id"],
+                        "username": row["username"],
+                        "full_name": row["full_name"],
+                        "role": row["role"],
+                        "created_at": row["created_at"]
+                    }
+                    return True, user_data, "Authentication successful."
+                else:
+                    return False, None, "Incorrect password."
+        except Exception as e:
+            return False, None, f"Authentication error: {str(e)}"
 
     def _encrypt_field(self, plaintext: str) -> str:
         """Encrypt sensitive field using AES-256-GCM and encode as Base64."""
@@ -248,7 +343,7 @@ class VaultDatabaseManager:
 _vault_db_instance: VaultDatabaseManager | None = None
 
 
-def get_vault_db(passphrase: str = "AeroSat-Master-Passphrase-2026") -> VaultDatabaseManager:
+def get_vault_db(passphrase: str = "Sadap-Master-Passphrase-2026") -> VaultDatabaseManager:
     """Return shared VaultDatabaseManager instance."""
     global _vault_db_instance
     if _vault_db_instance is None or _vault_db_instance.vault_passphrase != passphrase:

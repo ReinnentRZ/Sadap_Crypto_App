@@ -1,4 +1,4 @@
-/* AeroSat GroundStation - Light Theme Stylesheet */
+/* Sadap GroundStation - Light Theme Stylesheet */
 
 QMainWindow, QDialog {
     background-color: #F8FAFC;
@@ -16,8 +16,8 @@ QGroupBox {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
-    margin-top: 18px;
-    padding: 14px;
+    margin-top: 14px;
+    padding: 12px;
     font-weight: 600;
 }
 
@@ -75,6 +75,76 @@ QLineEdit, QTextEdit, QPlainTextEdit {
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
     border: 1px solid #0284C7;
     background-color: #F0F9FF;
+}
+
+/* Combo Box (Dropdown) Styling */
+QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #0F172A;
+    font-weight: 500;
+    min-height: 24px;
+}
+
+QComboBox:hover {
+    border: 1px solid #0284C7;
+    background-color: #F8FAFC;
+}
+
+QComboBox:focus {
+    border: 1.5px solid #0284C7;
+    background-color: #F0F9FF;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 28px;
+    border-left: 1px solid #E2E8F0;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    background-color: #F8FAFC;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #64748B;
+    width: 0px;
+    height: 0px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    color: #0F172A;
+    selection-background-color: #E0F2FE;
+    selection-color: #0284C7;
+    outline: none;
+    padding: 4px;
+}
+
+QComboBox QAbstractItemView::item {
+    min-height: 28px;
+    padding: 4px 8px;
+    color: #0F172A;
+    background-color: #FFFFFF;
+    border-radius: 4px;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #F1F5F9;
+    color: #0284C7;
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background-color: #E0F2FE;
+    color: #0369A1;
+    font-weight: 600;
 }
 
 /* Tab Widget */

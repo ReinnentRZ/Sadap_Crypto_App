@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QMessageBox,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 
 from config.settings import DATA_DIR
 from core.auth.usb_dongle import find_and_verify_dongle
@@ -60,6 +60,11 @@ class AuthDialog(QDialog):
         self._init_ui()
         self._check_usb_status()
 
+        # Automatic USB Hardware Dongle Plug/Unplug Detector (600ms Heartbeat)
+        self.usb_detector_timer = QTimer(self)
+        self.usb_detector_timer.timeout.connect(self._check_usb_status)
+        self.usb_detector_timer.start(600)
+
     def _init_ui(self):
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
@@ -79,7 +84,7 @@ class AuthDialog(QDialog):
         # ------------------------------------------------
         # FACTOR 1: HARDWARE USB DONGLE
         # ------------------------------------------------
-        usb_group = QGroupBox("Factor 1: Hardware USB Uplink Key")
+        usb_group = QGroupBox("Factor 1: Hardware USB Uplink Key (Auto-Detect Live)")
         usb_layout = QHBoxLayout(usb_group)
         self.usb_status_lbl = QLabel("Scanning USB bus...")
         self.usb_status_lbl.setStyleSheet("font-weight: 600; color: #DC2626;")
@@ -127,49 +132,84 @@ class AuthDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def _check_usb_status(self):
-        """Scan connected drives for valid signed USB dongle."""
-        found, msg, payload = find_and_verify_dongle(allow_virtual=True)
+        """
+        Scan connected storage drives for a valid signed physical USB dongle.
+        Runs automatically on a 600ms timer to dynamically detect insertion and removal.
+        """
+        found, msg, payload = find_and_verify_dongle(allow_virtual=False)
         if found:
+            was_invalid = not self.usb_valid
             self.usb_valid = True
             self.dongle_payload = payload
-            self.operator_callsign = payload.get("operator_callsign", "OPERATOR-ALPHA")
-            self.usb_status_lbl.setText(f"✅ Dongle Valid: {payload.get('device_serial')} ({self.operator_callsign})")
-            self.usb_status_lbl.setStyleSheet("color: #059669; font-weight: 600;")
+            self.operator_callsign = payload.get("operator_callsign", "SADAP-OPERATOR")
+            new_text = f"✅ Dongle Valid: {payload.get('device_serial')} ({self.operator_callsign})"
+            if self.usb_status_lbl.text() != new_text:
+                self.usb_status_lbl.setText(new_text)
+                self.usb_status_lbl.setStyleSheet("color: #059669; font-weight: 600;")
+                if was_invalid:
+                    logger.info(f"Hardware USB Dongle detected & verified: {payload.get('device_serial')}")
         else:
+            was_valid = self.usb_valid
             self.usb_valid = False
-            self.usb_status_lbl.setText("❌ No Authorized USB Dongle Detected")
-            self.usb_status_lbl.setStyleSheet("color: #DC2626; font-weight: 600;")
+            self.dongle_payload = {}
+            new_text = "❌ No Authorized USB Dongle Detected"
+            if self.usb_status_lbl.text() != new_text:
+                self.usb_status_lbl.setText(new_text)
+                self.usb_status_lbl.setStyleSheet("color: #DC2626; font-weight: 600;")
+                if was_valid:
+                    logger.warning("Hardware USB Dongle was unplugged! Status downgraded to unverified.")
 
     def _on_face_signal(self, is_matched: bool, score: float, message: str):
         """Handler for face recognition signal from camera widget."""
         self.face_valid = is_matched
 
+    def _cleanup_resources(self):
+        """Stop background timers and camera feed upon closing."""
+        if hasattr(self, "usb_detector_timer") and self.usb_detector_timer.isActive():
+            self.usb_detector_timer.stop()
+        self.camera_widget.stop_camera()
+
+    def reject(self):
+        self._cleanup_resources()
+        super().reject()
+
+    def accept(self):
+        self._cleanup_resources()
+        super().accept()
+
+    def closeEvent(self, event):
+        self._cleanup_resources()
+        super().closeEvent(event)
+
     def _attempt_unlock(self):
         """Validate all 3 factors before unlocking."""
-        # 1. USB Check
+        # 1. USB Check (Strict Physical Flashdisk Check)
         if not self.usb_valid:
             QMessageBox.critical(
                 self,
                 "Access Denied",
-                "Factor 1 Failed: Authorized Hardware USB Dongle is missing or unverified.\n\n"
-                "Please insert the authorized flashdisk or use tools/setup_dongle.py."
+                "Factor 1 Failed: Hardware USB Dongle tidak terdeteksi atau tidak valid!\n\n"
+                "Harus ada flashdisk USB fisik yang terhubung dan memiliki token key otorisasi (sadap.sig) "
+                "yang terikat dengan Volume Serial Number flashdisk tersebut.\n\n"
+                "Untuk melakukan inject token ke USB flashdisk, jalankan perintah:\n"
+                "python tools/setup_dongle.py"
             )
             return
 
-        # 2. Face Check
+        # 2. Face Check (Strict Biometric Match - No Simulation Bypass)
         if not self.face_valid and not self.camera_widget.last_matched:
-            # Check if camera is not running and user hasn't uploaded photo
-            reply = QMessageBox.question(
+            QMessageBox.critical(
                 self,
-                "Biometric Verification Required",
-                "Factor 2: Face biometric not yet verified.\n\n"
-                "Would you like to auto-verify using the registered template in simulation mode?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                "Access Denied",
+                "Factor 2 Failed: AI Face Biometric verification failed!\n\n"
+                "Wajah yang terdeteksi tidak cocok dengan template biometrik operator yang terdaftar, "
+                "atau belum ada wajah yang terverifikasi.\n\n"
+                "Silakan arahkan wajah operator sah ke kamera atau klik 'Verify via Photo...' untuk "
+                "memverifikasi foto potret operator.\n\n"
+                "Untuk mendaftarkan wajah baru ke sistem, jalankan:\n"
+                "python tools/register_face.py"
             )
-            if reply == QMessageBox.StandardButton.Yes:
-                self.face_valid = True
-            else:
-                return
+            return
 
         # 3. Password Check
         entered_pass = self.pass_input.text().strip()
@@ -188,9 +228,4 @@ class AuthDialog(QDialog):
             return
 
         # All 3 factors passed!
-        self.camera_widget.stop_camera()
         self.accept()
-
-    def closeEvent(self, event):
-        self.camera_widget.stop_camera()
-        super().closeEvent(event)

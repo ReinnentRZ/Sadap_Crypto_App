@@ -54,6 +54,7 @@ class CameraWidget(QWidget):
         )
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.video_label.setText("Initializing Camera Feed...")
+        self.video_label.setStyleSheet("color: #64748B; font-weight: 600;")
         layout.addWidget(self.video_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Status Label
@@ -77,6 +78,9 @@ class CameraWidget(QWidget):
 
     def start_camera(self):
         """Open webcam and start capture loop."""
+        # Reload template in case it was enrolled while app is running
+        self.template_embedding, self.operator_name = self.engine.load_template()
+
         if not self.is_camera_running:
             self.cap = cv2.VideoCapture(0)
             if not self.cap.isOpened():
@@ -132,9 +136,11 @@ class CameraWidget(QWidget):
                 self.face_verified_signal.emit(matched, score, status_text)
                 self.status_label.setText(f"Status: {status_text}")
             else:
-                color = (255, 200, 0)
-                status_text = "FACE DETECTED (No Template Registered)"
-                self.status_label.setText("Status: Face detected (Enrollment needed)")
+                self.last_matched = False
+                color = (0, 0, 220)
+                status_text = "NO TEMPLATE ENROLLED"
+                self.face_verified_signal.emit(False, 0.0, "No template enrolled")
+                self.status_label.setText("Status: No template enrolled (Run tools/register_face.py)")
 
             cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
             cv2.putText(
@@ -185,16 +191,20 @@ class CameraWidget(QWidget):
             self.face_verified_signal.emit(False, 0.0, "No face found in photo")
             return
 
+        # Reload template in case it was enrolled while app is running
+        self.template_embedding, self.operator_name = self.engine.load_template()
+
         if self.template_embedding is not None:
             emb = self.engine.extract_embedding(img, face_info)
             matched, score = self.engine.is_match(emb, self.template_embedding)
+            self.last_matched = matched
             msg = f"Photo Verified (Score {score:.2f})" if matched else f"Photo Rejected ({score:.2f})"
             self.status_label.setText(f"Status: {msg}")
             self.face_verified_signal.emit(matched, score, msg)
         else:
-            self.status_label.setText("Status: Face found, but no template enrolled")
-            # If no template is registered yet, auto-accept in simulation mode
-            self.face_verified_signal.emit(True, 1.0, "Simulation: Face Accepted")
+            self.last_matched = False
+            self.status_label.setText("Status: No face template enrolled. Please run tools/register_face.py.")
+            self.face_verified_signal.emit(False, 0.0, "No face template enrolled")
 
     def closeEvent(self, event):
         self.stop_camera()

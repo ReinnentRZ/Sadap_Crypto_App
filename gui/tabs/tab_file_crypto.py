@@ -22,6 +22,7 @@ from core.crypto.file_aes import encrypt_file, decrypt_file
 from core.blockchain.asset_tracker import AssetTracker
 from core.database.db_manager import get_vault_db
 from core.utils.crypto_helpers import sha256_hash_file
+from gui.components.password_line_edit import PasswordLineEdit
 from core.utils.logger import get_logger
 
 logger = get_logger("TabFileCrypto")
@@ -65,10 +66,7 @@ class TabFileCrypto(QWidget):
         p_layout = QVBoxLayout(pass_group)
 
         p_layout.addWidget(QLabel("Passphrase / Cipher Key:"))
-        self.passphrase_input = QLineEdit()
-        self.passphrase_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.passphrase_input.setPlaceholderText("Enter high-entropy encryption passphrase...")
-        self.passphrase_input.setText("AeroSat-Classified-Key-99")
+        self.passphrase_input = PasswordLineEdit(placeholder="Enter high-entropy encryption passphrase...")
         p_layout.addWidget(self.passphrase_input)
 
         layout.addWidget(pass_group)

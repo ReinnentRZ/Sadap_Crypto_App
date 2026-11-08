@@ -19,6 +19,7 @@ from config.settings import DATA_DIR
 from core.auth.usb_dongle import find_and_verify_dongle
 from core.auth.hasher import hash_password, verify_password
 from gui.components.camera_widget import CameraWidget
+from gui.components.password_line_edit import PasswordLineEdit
 from core.utils.logger import get_logger
 
 logger = get_logger("AuthDialog")
@@ -112,9 +113,8 @@ class AuthDialog(QDialog):
         pass_group = QGroupBox("Factor 3: Master Passcode (PBKDF2-HMAC-SHA256)")
         pass_layout = QVBoxLayout(pass_group)
 
-        self.pass_input = QLineEdit()
-        self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.pass_input.setPlaceholderText("Enter master clearance passcode...")
+        self.pass_input = PasswordLineEdit(self, placeholder="Enter master clearance passcode...")
+        self.pass_input.returnPressed.connect(self._attempt_unlock)
         pass_layout.addWidget(self.pass_input)
         layout.addWidget(pass_group)
 

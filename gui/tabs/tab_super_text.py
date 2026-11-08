@@ -19,6 +19,7 @@ from PyQt6.QtCore import Qt
 from core.crypto.rsa_engine import get_or_create_default_keypair, export_public_key_pem
 from core.crypto.super_text_cipher import super_encrypt, super_decrypt
 from core.database.db_manager import get_vault_db
+from gui.components.password_line_edit import PasswordLineEdit
 from core.utils.logger import get_logger
 
 logger = get_logger("TabSuperText")
@@ -51,9 +52,7 @@ class TabSuperText(QWidget):
         enc_layout.addWidget(self.plain_input)
 
         enc_layout.addWidget(QLabel("Classical Vigenère Key (Passphrase):"))
-        self.enc_vigenere_key = QLineEdit()
-        self.enc_vigenere_key.setPlaceholderText("e.g. ORBIT-ALPHA-SECRET-KEY")
-        self.enc_vigenere_key.setText("ORBIT-KEY-2026")
+        self.enc_vigenere_key = PasswordLineEdit(placeholder="Enter Vigenère key...")
         enc_layout.addWidget(self.enc_vigenere_key)
 
         key_info_label = QLabel(f"RSA Asymmetric Target: System 2048-bit Public Key (OAEP-SHA256)")
@@ -98,9 +97,7 @@ class TabSuperText(QWidget):
         dec_layout.addWidget(self.cipher_input)
 
         dec_layout.addWidget(QLabel("Classical Vigenère Key:"))
-        self.dec_vigenere_key = QLineEdit()
-        self.dec_vigenere_key.setPlaceholderText("Enter matching Vigenère key...")
-        self.dec_vigenere_key.setText("ORBIT-KEY-2026")
+        self.dec_vigenere_key = PasswordLineEdit(placeholder="Enter matching Vigenère key...")
         dec_layout.addWidget(self.dec_vigenere_key)
 
         dec_key_label = QLabel("RSA Decryption Key: Hardware-bound Private Key loaded")
@@ -137,10 +134,7 @@ class TabSuperText(QWidget):
         try:
             token = super_encrypt(plain, v_key, self.pub_key)
             self.cipher_output.setPlainText(token)
-            # Auto-paste into decryption box for convenience
-            self.cipher_input.setPlainText(token)
-            self.dec_vigenere_key.setText(v_key)
-            self.status_banner.setText("Status: Message successfully super-encrypted!")
+            self.status_banner.setText("Status: Message successfully super-encrypted! Copy token to decrypt.")
             self.status_banner.setStyleSheet("color: #059669; font-weight: 600;")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Super-encryption failed: {str(e)}")

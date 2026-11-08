@@ -1,0 +1,18 @@
+[
+  {
+    "index": 0,
+    "timestamp": 1794150319,
+    "data": [
+      {
+        "event": "GENESIS_NETWORK_INIT",
+        "protocol": "AEROSAT-ORBIT-LEDGER-v1",
+        "message": "AeroSat GroundStation Immutable Asset Ledger Online.",
+        "timestamp": 1794150319,
+        "genesis_operator": "AEROSAT-HEADQUARTERS"
+      }
+    ],
+    "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "nonce": 7868,
+    "hash": "000c0a691d16090703db3a84419c7eb406f3fd05f7bf83c3df9f527da79239ff"
+  }
+]

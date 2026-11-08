@@ -190,9 +190,7 @@ class AuthDialog(QDialog):
                 "Access Denied",
                 "Factor 1 Failed: Hardware USB Dongle tidak terdeteksi atau tidak valid!\n\n"
                 "Harus ada flashdisk USB fisik yang terhubung dan memiliki token key otorisasi (sadap.sig) "
-                "yang terikat dengan Volume Serial Number flashdisk tersebut.\n\n"
-                "Untuk melakukan inject token ke USB flashdisk, jalankan perintah:\n"
-                "python tools/setup_dongle.py"
+                "yang terikat dengan Volume Serial Number flashdisk tersebut.\n"
             )
             return
 
@@ -205,9 +203,7 @@ class AuthDialog(QDialog):
                 "Wajah yang terdeteksi tidak cocok dengan template biometrik operator yang terdaftar, "
                 "atau belum ada wajah yang terverifikasi.\n\n"
                 "Silakan arahkan wajah operator sah ke kamera atau klik 'Verify via Photo...' untuk "
-                "memverifikasi foto potret operator.\n\n"
-                "Untuk mendaftarkan wajah baru ke sistem, jalankan:\n"
-                "python tools/register_face.py"
+                "memverifikasi foto potret operator.\n"
             )
             return
 

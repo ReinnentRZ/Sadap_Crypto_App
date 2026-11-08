@@ -54,10 +54,10 @@ Sadap-Crypto-App/
 │   │
 │   └── utils/                      # Fungsi pembantu umum
 │       ├── __init__.py
-│       ├── crypto_helpers.py       # Helper konversi byte, hex, base64, dan random salt
+│       ├── crypto_helpers.py       # Helper konversi byte, hex, base64, dan random sagilt
 │       └── logger.py               # Logging aktivitas sistem
 │
-├── data/                           # Direktori penyimpanan data lokal (dikecualikan dari git)
+├── data/                           # Direktori penyimpanan data lokal (dikecualikan dari git) 
 │   ├── vault.db                    # Basis data SQLite terenkripsi lokal
 │   ├── blockchain_ledger.json      # File persistensi rantai blok
 │   └── keys/                       # Penyimpanan kunci publik/privat terdaftar

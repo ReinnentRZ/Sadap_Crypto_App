@@ -818,7 +818,7 @@ Pengujian dilakukan secara menyeluruh terhadap 53 unit test dan skenario integra
 | UJI-11 | Verifikasi Biometrik Operator Sah | Operator terdaftar menghadap webcam | Deteksi YuNet & Cosine score SFace $\ge 0.363$ | Operator terverifikasi (Skor kemiripan 0.742 > 0.363) | **PASSED** |
 | UJI-12 | Uji Biometrik Wajah Orang Lain | Orang asing tidak terdaftar menghadap webcam | Wajah terdeteksi namun skor kemiripan $< 0.363$ | Akses ditolak ("Similarity below threshold") | **PASSED** |
 | UJI-13 | Verifikasi Passcode Master Salah | Input: `WrongPassword123` | Verifikasi hash PBKDF2 gagal | Dialog peringatan: "Master passcode incorrect!" | **PASSED** |
-| UJI-14 | Verifikasi Passcode Master Benar | Input: `Sadap-Commander-2026!` | Hash cocok, seluruh 3 faktor terpenuhi, brankas terbuka | Mode publik disembunyikan, Secret Dashboard terbuka penuh | **PASSED** |
+| UJI-14 | Verifikasi Passcode Master Benar | Input: passcode master valid (default awal fresh install: `Sadap-Commander-2026!`) | Hash cocok, seluruh 3 faktor terpenuhi, brankas terbuka | Mode publik disembunyikan, Secret Dashboard terbuka penuh | **PASSED** |
 
 #### 3. Pengujian Super Enkripsi Teks (Extended Vigenère + RSA-OAEP)
 | ID Uji | Skenario Uji | Masukan (Input) | Ekspektasi Sistem | Hasil Aktual | Status |

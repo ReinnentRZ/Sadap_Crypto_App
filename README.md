@@ -118,7 +118,7 @@ Pada dialog autentikasi, nyalakan kamera — **tidak ada verifikasi via foto**.
 ### 3. Passcode Master Clearance (Faktor 3)
 
 Passcode master diverifikasi menggunakan derivasi kunci **PBKDF2-HMAC-SHA256** (200.000 iterasi dengan salt kriptografis unik) yang tersimpan pada `data/keys/master_credential.hash`.
-* **Default Master Code**: `Sadap-Commander-2026!`
+* **Default awal (fresh install)**: `Sadap-Commander-2026!` — **segera ganti** setelah instalasi (hash lokal tidak pernah disimpan di Git).
 
 #### Cara Mengganti Master Passcode:
 Anda dapat mengganti Master Passcode kapan saja melalui **dua cara**:
@@ -199,7 +199,7 @@ python main.py
 | Layanan | Username / Callsign | Password / Passcode | Keterangan |
 | :--- | :--- | :--- | :--- |
 | **Portal Operator Biasa** | `operator` | `operator123` | Masuk ke Cover Stasiun Satelit biasa (atau buat akun baru di tab Register) |
-| **Passcode Master Vault** | `COMMANDER-01` | `Sadap-Commander-2026!` | Digunakan pada dialog otorisasi 3-faktor gerbang rahasia |
+| **Passcode Master Vault** | `COMMANDER-01` | `Sadap-Commander-2026!` *(default awal, segera ganti)* | Digunakan pada dialog otorisasi 3-faktor gerbang rahasia |
 
 ---
 

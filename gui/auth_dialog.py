@@ -55,6 +55,7 @@ class AuthDialog(QDialog):
         self.stored_hash = get_or_create_master_credential()
         self.usb_valid = False
         self.face_valid = False
+        self.face_operator = ""
         self.dongle_payload = {}
         self.operator_callsign = "OPERATOR-UNKNOWN"
 
@@ -159,9 +160,10 @@ class AuthDialog(QDialog):
                 if was_valid:
                     logger.warning("Hardware USB Dongle was unplugged! Status downgraded to unverified.")
 
-    def _on_face_signal(self, is_matched: bool, score: float, message: str):
+    def _on_face_signal(self, is_matched: bool, score: float, message: str, operator_name: str):
         """Handler for face recognition signal from camera widget."""
         self.face_valid = is_matched
+        self.face_operator = operator_name if is_matched else ""
 
     def _cleanup_resources(self):
         """Stop background timers and camera feed upon closing."""
@@ -200,10 +202,10 @@ class AuthDialog(QDialog):
                 self,
                 "Access Denied",
                 "Factor 2 Failed: AI Face Biometric verification failed!\n\n"
-                "Wajah yang terdeteksi tidak cocok dengan template biometrik operator yang terdaftar, "
+                "Wajah yang terdeteksi tidak cocok dengan salah satu template operator yang terdaftar, "
                 "atau belum ada wajah yang terverifikasi.\n\n"
-                "Silakan arahkan wajah operator sah ke kamera atau klik 'Verify via Photo...' untuk "
-                "memverifikasi foto potret operator.\n"
+                "Silakan nyalakan kamera dan arahkan wajah operator terdaftar ke lensa. "
+                "Pendaftaran wajah hanya dapat dilakukan di dalam Secret Dashboard.\n"
             )
             return
 

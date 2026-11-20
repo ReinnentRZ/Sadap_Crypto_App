@@ -429,12 +429,13 @@ Antarmuka publik menampilkan konsol stasiun bumi ilmiah yang sarat informasi tek
 4. **Terminal Log Aliran Data**: Menampilkan aliran paket mentah telemetri biner (AX.25 / CCSDS packet frames) yang diperbarui secara acak melalui timer internal untuk mensimulasikan stasiun bumi aktif.
 
 #### 3.2.2 Mode Intelijen (The Vault)
-Setelah lolos autentikasi 3FA, jendela publik disembunyikan (*hidden*) dan aplikasi memunculkan bilik komando intelijen terenkripsi yang terdiri atas 5 tab fungsional:
+Setelah lolos autentikasi 3FA, jendela publik disembunyikan (*hidden*) dan aplikasi memunculkan bilik komando intelijen terenkripsi yang terdiri atas 6 tab fungsional:
 1. **Tab 1: Super-Text Transmission (Vigenère + RSA-OAEP)**: Editor penulisan arahan intelijen teks, penampil kunci publik/privat RSA, tombol eksekusi super-enkripsi dua lapis, dan penampil token terstruktur Base64.
 2. **Tab 2: AES File Vault (AES-256-GCM)**: Fitur pengamanan berkas dokumen dengan antarmuka seret-dan-lepas (*drag and drop*), pemilihan kunci passphrase, indikator persentase *progress bar* streaming chunk, serta verifikasi keutuhan berkas.
 3. **Tab 3: Satellite Stego Lab (LSB)**: Studio steganografi citra satelit yang memuat citra pembawa, penampil kapasitas muatan maksimum dalam kilobyte, opsi proteksi pra-enkripsi AES, serta penampil perbandingan visual citra asli vs stego berdampingan (*side-by-side view*) lengkap dengan skor PSNR.
 4. **Tab 4: Encrypted Database Explorer**: Penjelajah tabel memo rahasia, katalog berkas terlindung, riwayat injeksi stego, dan log audit keamanan dengan fitur dekripsi transparan waktu-nyata.
 5. **Tab 5: Blockchain Explorer & Integrity Auditor**: Visualisator kartu blok rantai (*Block Card Widgets*), penampil transaksi digital, pencatat fingerprint hash berkas baru, serta instrumen tombol verifikasi audit rantai (*Audit Ledger Integrity*).
+6. **Tab 6: Face Enrollment**: Pengelolaan banyak wajah operator melalui kamera, penyimpanan snapshot dalam berkas `.enc` terenkripsi AES-256-GCM dengan passphrase manual, serta penghapusan operator. Tab ini hanya dapat diakses setelah 3FA berhasil.
 
 ---
 
@@ -555,7 +556,7 @@ sequenceDiagram
         UI->>AI: verify_frame(WebcamFrame)
         AI->>AI: YuNet Detect Face & Landmark Alignment
         AI->>AI: SFace Ekstraksi Vektor Fitur 128-D
-        AI->>AI: Hitung Cosine Similarity vs face_template.npz
+        AI->>AI: Hitung Cosine Similarity vs semua template di face_template.npz
         AI-->>UI: Skor Kemiripan (misal: 0.742 >= 0.363 -> Match)
     end
     UI->>UI: Perbarui Indikator Faktor 2 (Hijau Terverifikasi)

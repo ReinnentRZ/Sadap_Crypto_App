@@ -264,5 +264,9 @@ class MainCoverWindow(QMainWindow):
         if auth_dlg.exec() == AuthDialog.DialogCode.Accepted:
             callsign = auth_dlg.operator_callsign
             self.hide()
-            self.secret_dashboard = SecretDashboardWindow(operator_callsign=callsign, parent=self)
+            self.secret_dashboard = SecretDashboardWindow(
+                operator_callsign=callsign,
+                dongle_payload=auth_dlg.dongle_payload,
+                parent=self,
+            )
             self.secret_dashboard.showMaximized()

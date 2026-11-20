@@ -79,6 +79,10 @@ DB_PATH = DATA_DIR / "vault.db"
 BLOCKCHAIN_PATH = DATA_DIR / "blockchain_ledger.json"
 BIOMETRIC_TEMPLATE_PATH = DATA_DIR / "keys" / "face_template.npz"
 
+# Encrypted face-capture snapshots (only AES-256-GCM .enc files live here)
+FACE_SNAPSHOT_DIR = DATA_DIR / "keys" / "faces"
+FACE_SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+
 # AI Face Recognition Models
 YUNET_MODEL_PATH = MODELS_DIR / "face_detection_yunet.onnx"
 SFACE_MODEL_PATH = MODELS_DIR / "face_recognition_sface.onnx"

@@ -234,6 +234,21 @@ def verify_token_payload(token_data: dict, current_serial: str) -> tuple[bool, s
     return True, "Dongle token verified and authentic."
 
 
+def dongle_identity_matches(payload: dict, expected: dict) -> bool:
+    """Return True when a scanned token is the same one used at login.
+
+    An empty ``expected`` payload keeps backward compatibility with callers
+    that have no token identity to pin (any valid dongle is accepted then).
+    """
+    if not expected:
+        return True
+    for key in ("token_id", "device_serial"):
+        value = expected.get(key)
+        if value and payload.get(key) != value:
+            return False
+    return True
+
+
 def find_and_verify_dongle(allow_virtual: bool = False) -> tuple[bool, str, dict]:
     """
     Scan all mounted storage drives for an authorized physical USB dongle.

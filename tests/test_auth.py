@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+import cv2
 import numpy as np
 
 from core.auth.hasher import hash_password, verify_password, generate_secure_passcode
@@ -14,9 +15,11 @@ from core.auth.usb_dongle import (
     verify_token_payload,
     get_volume_serial_number,
     find_and_verify_dongle,
+    dongle_identity_matches,
     USB_TOKEN_FILENAME,
 )
 from core.auth.face_recog import get_face_engine
+from core.crypto.file_aes import encrypt_file, decrypt_file
 
 
 class TestPasswordHasher(unittest.TestCase):
@@ -159,6 +162,104 @@ class TestFaceBiometricEngine(unittest.TestCase):
             np.testing.assert_array_equal(sample_feat, loaded_feat)
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+class TestMultiFaceTemplates(unittest.TestCase):
+    """Multi-operator biometric registry, migration, and best-of-N matching."""
+
+    def setUp(self):
+        self.engine = get_face_engine()
+        self.tmp_dir = tempfile.mkdtemp(prefix="sadap_multiface_test_")
+        self.path = Path(self.tmp_dir) / "operators.npz"
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    @staticmethod
+    def _vector(seed: int) -> np.ndarray:
+        vector = np.random.default_rng(seed).normal(size=(1, 128)).astype(np.float32)
+        return vector / np.linalg.norm(vector)
+
+    def test_save_multiple_and_match_best_operator(self):
+        alpha = self._vector(1)
+        beta = self._vector(2)
+        self.assertTrue(self.engine.save_template(alpha, "ALPHA", self.path))
+        self.assertTrue(self.engine.save_template(beta, "BETA", self.path))
+
+        self.assertEqual(self.engine.list_template_names(self.path), ["ALPHA", "BETA"])
+        matched, score, name = self.engine.match_embedding(beta, self.engine.load_templates(self.path))
+        self.assertTrue(matched)
+        self.assertAlmostEqual(score, 1.0, places=2)
+        self.assertEqual(name, "BETA")
+
+    def test_upsert_and_delete_keep_other_operators(self):
+        alpha = self._vector(3)
+        beta = self._vector(4)
+        replacement = self._vector(5)
+        self.engine.save_template(alpha, "ALPHA", self.path)
+        self.engine.save_template(beta, "BETA", self.path)
+
+        self.assertTrue(self.engine.save_template(replacement, "ALPHA", self.path))
+        self.assertEqual(self.engine.list_template_names(self.path), ["ALPHA", "BETA"])
+        _, _, name = self.engine.match_embedding(replacement, self.engine.load_templates(self.path))
+        self.assertEqual(name, "ALPHA")
+
+        self.assertTrue(self.engine.delete_template("ALPHA", self.path))
+        self.assertEqual(self.engine.list_template_names(self.path), ["BETA"])
+        self.assertFalse(self.engine.delete_template("ALPHA", self.path))
+
+    def test_legacy_single_face_is_migrated(self):
+        legacy = self._vector(6)
+        np.savez_compressed(self.path, embedding=legacy, operator_name="rei")
+
+        loaded = self.engine.load_templates(self.path)
+        self.assertEqual([t.name for t in loaded], ["rei"])
+
+        self.engine.save_template(self._vector(7), "SADAP-ALPHA", self.path)
+        data = np.load(self.path, allow_pickle=True)
+        self.assertIn("embeddings", data)
+        self.assertEqual(len(data["embeddings"]), 2)
+        self.assertEqual(self.engine.list_template_names(self.path), ["rei", "SADAP-ALPHA"])
+
+
+class TestEncryptedFaceSnapshot(unittest.TestCase):
+    """Snapshot bytes are AES-256-GCM encrypted and recoverable with the passphrase."""
+
+    def test_encrypt_and_decrypt_snapshot(self):
+        with tempfile.TemporaryDirectory(prefix="sadap_snapshot_test_") as tmp:
+            root = Path(tmp)
+            plain = root / "face.png"
+            cv2.imwrite(str(plain), np.zeros((112, 112, 3), dtype=np.uint8))
+
+            encrypted = root / "face.png.enc"
+            ok, msg, _ = encrypt_file(plain, encrypted, "snapshot-passphrase")
+            self.assertTrue(ok, msg)
+            self.assertTrue(encrypted.exists())
+            self.assertFalse(encrypted.read_bytes().startswith(b"\x89PNG"))
+
+            out_dir = root / "decrypted"
+            ok, msg, decrypted = decrypt_file(encrypted, out_dir, "snapshot-passphrase")
+            self.assertTrue(ok, msg)
+            self.assertIsNotNone(decrypted)
+            self.assertEqual(cv2.imread(str(decrypted)).shape, (112, 112, 3))
+
+            ok, msg, _ = decrypt_file(encrypted, root / "wrong", "wrong-passphrase")
+            self.assertFalse(ok)
+
+
+class TestDongleIdentityPinning(unittest.TestCase):
+    """Swapping to a different authorized dongle must be treated as removal."""
+
+    def test_only_original_token_is_accepted(self):
+        expected = {"token_id": "token-1", "device_serial": "SERIAL-1"}
+        self.assertTrue(dongle_identity_matches(dict(expected), expected))
+        self.assertFalse(
+            dongle_identity_matches({"token_id": "token-2", "device_serial": "SERIAL-1"}, expected)
+        )
+        self.assertFalse(
+            dongle_identity_matches({"token_id": "token-1", "device_serial": "SERIAL-2"}, expected)
+        )
+        self.assertTrue(dongle_identity_matches({}, {}))
 
 
 if __name__ == "__main__":

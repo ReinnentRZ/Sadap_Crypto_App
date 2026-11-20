@@ -29,7 +29,7 @@ Aplikasi ini menyamarkan instrumen spionase modern ke dalam perangkat lunak anal
 ### A. Gatekeeper Otorisasi (3-Factor Zero-Trust)
 Untuk beralih dari stasiun satelit biasa ke mode intelijen, sistem mewajibkan pemenuhan tiga faktor otentikasi:
 * **Faktor 1 (What You Have - Hardware USB Token)**: Dongle USB fisik yang memiliki file *cryptographic signature key* dan volume serial hardware yang terdaftar. Tanpa USB ini, pintu rahasia tidak akan pernah muncul.
-* **Faktor 2 (Who You Are - Biometric Face Recognition)**: Pemindaian wajah operator secara langsung melalui webcam. Menggunakan deteksi landmark wajah dan pencocokan embedding wajah untuk memastikan keaslian fisik operator.
+* **Faktor 2 (Who You Are - Biometric Face Recognition)**: Pemindaian wajah operator secara langsung melalui webcam (tanpa opsi foto). Menggunakan deteksi landmark YuNet dan pencocokan embedding SFace terhadap **semua** operator terdaftar. Pengelolaan wajah hanya bisa dilakukan dari dalam brankas; snapshot disimpan terenkripsi AES-256-GCM.
 * **Faktor 3 (What You Know - Cryptographic Hash)**: Verifikasi *Passcode Master* menggunakan algoritma hash modern ber-salt (Argon2id / PBKDF2-HMAC-SHA256) untuk mencegah serangan kamus dan *rainbow table*.
 
 ---

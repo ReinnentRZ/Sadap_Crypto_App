@@ -1,58 +1,75 @@
 """
-CLI Utility: Register Biometric Face Template for Sadap GroundStation
-Allows enrolling an authorized operator via live webcam capture or via a portrait photo.
-Extracts 128-dimensional Deep Learning embeddings via YuNet & SFace, saving to data/keys/face_template.npz.
+CLI Utility: Multi-Operator Face Enrollment for Sadap GroundStation
+
+Camera-only enrollment via webcam. Each capture stores a 128-D SFace embedding
+in data/keys/face_template.npz and an AES-256-GCM encrypted PNG snapshot in
+data/keys/faces/. The snapshot passphrase is supplied interactively and never
+written to disk.
 """
+import getpass
+import re
 import sys
+import tempfile
+from datetime import datetime
 from pathlib import Path
-import cv2
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import cv2
+
+from config.settings import BIOMETRIC_TEMPLATE_PATH, FACE_SNAPSHOT_DIR
 from core.auth.face_recog import get_face_engine
-from config.settings import BIOMETRIC_TEMPLATE_PATH
+from core.crypto.file_aes import encrypt_file
 
 
-def register_from_image(image_path: str, operator_name: str) -> bool:
-    """Enroll face from a photo file."""
-    p = Path(image_path)
-    if not p.exists():
-        print(f"[-] Berkas foto tidak ditemukan: {image_path}")
-        return False
+def _safe_name(name: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_-]+", "_", name).strip("_") or "operator"
 
-    img = cv2.imread(str(p))
-    if img is None:
-        print("[-] Gagal mendecode gambar foto.")
-        return False
 
+def list_operators() -> None:
+    names = get_face_engine().list_template_names()
+    if not names:
+        print("[-] Belum ada operator terdaftar.")
+        return
+    print(f"[*] {len(names)} operator terdaftar:")
+    for index, name in enumerate(names, 1):
+        print(f"    [{index}] {name}")
+
+
+def delete_operator(name: str) -> bool:
     engine = get_face_engine()
-    found, face_info, bbox = engine.detect_face(img)
-    if not found or face_info is None:
-        print("[-] Tidak ada wajah manusia yang terdeteksi di dalam foto.")
+    if not engine.delete_template(name):
+        print(f"[-] Operator '{name}' tidak ditemukan.")
         return False
-
-    embedding = engine.extract_embedding(img, face_info)
-    ok = engine.save_template(embedding, operator_name=operator_name, file_path=BIOMETRIC_TEMPLATE_PATH)
-    if ok:
-        print("\n" + "=" * 65)
-        print("  ✓ PENDAFTARAN BIOMETRIK WAJAH BERHASIL!")
-        print("=" * 65)
-        print(f"  - Nama Operator : {operator_name}")
-        print(f"  - Sumber Foto   : {image_path}")
-        print(f"  - Template File : {BIOMETRIC_TEMPLATE_PATH}")
-        print("  - Vektor Fitur  : 128-D Normalized SFace Embedding")
-        print("=" * 65)
-    return ok
+    removed = 0
+    for snapshot in FACE_SNAPSHOT_DIR.glob(f"{_safe_name(name)}_*.enc"):
+        snapshot.unlink(missing_ok=True)
+        removed += 1
+    print(f"[+] Operator '{name}' dihapus ({removed} snapshot terenkripsi dihapus).")
+    return True
 
 
-def register_from_webcam(operator_name: str) -> bool:
-    """Enroll face using live webcam capture."""
-    print("\n[*] Menghubungkan ke webcam... (Tekan SPASI untuk ambil foto, Q untuk batal)")
+def prompt_passphrase() -> str:
+    """Ask twice for the snapshot encryption passphrase without echoing it."""
+    while True:
+        first = getpass.getpass("Passphrase enkripsi snapshot: ").strip()
+        if not first:
+            print("[-] Passphrase tidak boleh kosong.")
+            continue
+        second = getpass.getpass("Ulangi passphrase: ").strip()
+        if first != second:
+            print("[-] Passphrase tidak cocok. Coba lagi.")
+            continue
+        return first
+
+
+def register_from_webcam(operator_name: str, passphrase: str) -> bool:
+    """Enroll a face from the live webcam and save an encrypted snapshot."""
+    print("\n[*] Menghubungkan ke webcam... (SPASI = simpan, Q = batal)")
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("[-] Tidak dapat mengakses perangkat webcam.")
-        print("    Gunakan opsi [2] untuk mendaftarkan wajah dari berkas foto potret.")
         return False
 
     engine = get_face_engine()
@@ -69,14 +86,14 @@ def register_from_webcam(operator_name: str) -> bool:
 
         if found and bbox:
             x, y, w, h = bbox
-            cv2.rectangle(display, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(display, (x, y), (x + w, y + h), (0, 200, 0), 2)
             cv2.putText(
                 display,
-                "WAJAH TERDETEKSI - Tekan SPASI untuk Menyimpan",
+                "WAJAH TERDETEKSI - SPASI: Simpan",
                 (x, max(25, y - 10)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
-                (0, 255, 0),
+                (0, 200, 0),
                 2,
             )
         else:
@@ -86,26 +103,47 @@ def register_from_webcam(operator_name: str) -> bool:
                 (20, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
-                (0, 0, 255),
+                (0, 0, 220),
                 2,
             )
 
-        cv2.imshow("Sadap Biometric Enrollment - Tekan SPASI: Simpan | Q: Batal", display)
+        cv2.imshow("Sadap Biometric Enrollment - SPASI: Simpan | Q: Batal", display)
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord(" ") and found and face_info is not None:
+            aligned = engine.align_face(frame_mirrored, face_info)
             embedding = engine.extract_embedding(frame_mirrored, face_info)
-            saved = engine.save_template(embedding, operator_name=operator_name, file_path=BIOMETRIC_TEMPLATE_PATH)
-            if saved:
-                print("\n" + "=" * 65)
-                print("  ✓ PENDAFTARAN BIOMETRIK WAJAH BERHASIL!")
-                print("=" * 65)
-                print(f"  - Nama Operator : {operator_name}")
-                print(f"  - Sumber        : Kamera Webcam Live")
-                print(f"  - Template File : {BIOMETRIC_TEMPLATE_PATH}")
-                print("=" * 65)
+
+            filename = f"{_safe_name(operator_name)}_{datetime.now():%Y%m%d_%H%M%S}.png"
+            encrypted_path = FACE_SNAPSHOT_DIR / f"{filename}.enc"
+            try:
+                with tempfile.TemporaryDirectory(prefix="sadap_face_capture_") as tmp_dir:
+                    plain_path = Path(tmp_dir) / filename
+                    if not cv2.imwrite(str(plain_path), aligned):
+                        raise OSError("Gagal menulis PNG sementara.")
+                    ok, msg, _ = encrypt_file(plain_path, encrypted_path, passphrase)
+                if not ok:
+                    raise OSError(msg)
+            except Exception as exc:
+                print(f"[-] Snapshot gagal dienkripsi: {exc}")
+                break
+
+            if not engine.save_template(embedding, operator_name):
+                encrypted_path.unlink(missing_ok=True)
+                print("[-] Gagal menyimpan template biometrik.")
+                break
+
+            saved = True
+            print("\n" + "=" * 65)
+            print("  [+] PENDAFTARAN BIOMETRIK WAJAH BERHASIL")
+            print("=" * 65)
+            print(f"  - Nama Operator : {operator_name}")
+            print(f"  - Sumber        : Kamera Webcam Live")
+            print(f"  - Template File : {BIOMETRIC_TEMPLATE_PATH}")
+            print(f"  - Snapshot      : {encrypted_path} (AES-256-GCM .enc)")
+            print("=" * 65)
             break
-        elif key == ord("q") or key == 27:
+        elif key in (ord("q"), 27):
             print("[*] Pendaftaran dibatalkan oleh pengguna.")
             break
 
@@ -114,27 +152,36 @@ def register_from_webcam(operator_name: str) -> bool:
     return saved
 
 
-def main():
+def main() -> None:
     print("=" * 65)
     print("  SADAP GROUNDSTATION — BIOMETRIC FACE ENROLLMENT UTILITY")
     print("=" * 65)
-    print("Mendaftarkan wajah operator ke dalam sistem pengenalan wajah biometrik AI.")
-    print("Template disimpan dalam format vektor terkompresi di data/keys/face_template.npz.\n")
+    print("Mendaftarkan beberapa operator wajah melalui webcam.")
+    print("Template: data/keys/face_template.npz")
+    print("Snapshot terenkripsi: data/keys/faces/*.enc\n")
 
-    name = input("Masukkan Nama/Callsign Operator [Sadap Commander]: ").strip()
-    if not name:
-        name = "Sadap Commander"
+    while True:
+        print("\nPilih aksi:")
+        print("  [1] Daftarkan / perbarui wajah (kamera)")
+        print("  [2] Lihat daftar operator")
+        print("  [3] Hapus operator")
+        print("  [4] Keluar")
+        choice = input("\nPilihan (1/2/3/4) [Default: 1]: ").strip() or "1"
 
-    print("\nPilih metode pendaftaran:")
-    print("  [1] Ambil Langsung via Kamera Webcam")
-    print("  [2] Ambil dari Berkas Foto Potret (PNG/JPG)")
-    choice = input("\nPilihan (1/2) [Default: 1]: ").strip()
-
-    if choice == "2":
-        path = input("Masukkan path lengkap berkas foto potret: ").strip().strip('"')
-        register_from_image(path, name)
-    else:
-        register_from_webcam(name)
+        if choice == "1":
+            name = input("Nama/Callsign Operator [Sadap Commander]: ").strip() or "Sadap Commander"
+            register_from_webcam(name, prompt_passphrase())
+        elif choice == "2":
+            list_operators()
+        elif choice == "3":
+            name = input("Nama operator yang akan dihapus: ").strip()
+            if name:
+                delete_operator(name)
+        elif choice == "4":
+            print("[*] Selesai.")
+            break
+        else:
+            print("[-] Pilihan tidak dikenali.")
 
 
 if __name__ == "__main__":

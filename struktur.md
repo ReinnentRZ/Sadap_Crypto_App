@@ -29,7 +29,7 @@ Sadap-Crypto-App/
 │   ├── auth/                       # Modul Gatekeeper (3-Factor Authentication)
 │   │   ├── __init__.py
 │   │   ├── usb_dongle.py           # Deteksi hardware USB & pembacaan signature key
-│   │   ├── face_recog.py           # Face detection & landmark matching (OpenCV)
+│   │   ├── face_recog.py           # Multi-operator YuNet/SFace registry + best-of-N matching
 │   │   └── hasher.py               # Algoritma hash password (PBKDF2)
 │   │
 │   ├── api/                        # Klien API publik (urllib + cache JSON)
@@ -72,7 +72,8 @@ Sadap-Crypto-App/
 │   ├── blockchain_ledger.json      # File persistensi rantai blok
 │   ├── cache/nasa/                 # Cache respons & gambar NASA (diabaikan Git)
 │   ├── cache/weather/              # Cache prakiraan Open-Meteo (diabaikan Git)
-│   └── keys/                       # Penyimpanan kunci publik/privat terdaftar
+│   ├── keys/                       # Penyimpanan kunci publik/privat terdaftar
+│   │   └── faces/                  # Snapshot wajah terenkripsi (.enc, diabaikan Git)
 │
 ├── gui/                            # Antarmuka Pengguna Berbasis PyQt6 (Tema Terang)
 │   ├── __init__.py
@@ -98,11 +99,14 @@ Sadap-Crypto-App/
 │   │   ├── tab_file_crypto.py      # Tab Enkripsi File (AES-256-GCM)
 │   │   ├── tab_stego_lab.py        # Tab Steganografi Citra Satelit LSB
 │   │   ├── tab_database_vault.py   # Tab Penjelajah Data Terenkripsi
-│   │   └── tab_blockchain_view.py  # Tab Penjelajah Blok & Audit Integritas
+│   │   ├── tab_blockchain_view.py  # Tab Penjelajah Blok & Audit Integritas
+│   │   └── tab_face_enrollment.py  # Tab kelola banyak wajah + snapshot terenkripsi
 │   │
 │   └── components/                 # Komponen UI modular
 │       ├── __init__.py
-│       ├── camera_widget.py              # Widget preview feed webcam untuk face scan
+│       ├── camera_feed.py                # Preview webcam responsif (tanpa crop) + siklus kamera
+│       ├── camera_widget.py              # Verifikasi wajah di auth dialog (kamera saja)
+│       ├── face_enroll_widget.py         # Preview + capture wajah untuk tab pendaftaran
 │       ├── satellite_map_widget.py       # Widget peta simulasi stasiun bumi
 │       ├── google_satellite_map_widget.py# Peta Leaflet/Google/ESRI interaktif (WebEngine)
 │       ├── cover_sidebar.py               # Navigasi sidebar dashboard cover
@@ -111,7 +115,7 @@ Sadap-Crypto-App/
 │
 ├── tools/                          # Script utilitas administratif & penyiapan
 │   ├── setup_dongle.py             # Script CLI untuk mendaftarkan USB Flashdisk menjadi Dongle resmi
-│   ├── register_face.py            # Script CLI untuk merekam wajah operator terdaftar
+│   ├── register_face.py            # CLI multi-wajah via kamera + snapshot AES-256-GCM
 │   └── fetch_real_satellite.py     # Unduh citra contoh preset kota Indonesia
 │
 ├── tests/                          # Automated Unit & Integration Tests
@@ -145,7 +149,7 @@ Sadap-Crypto-App/
 * **Tanggung Jawab**: Menangani pintu gerbang otentikasi 3-faktor sebelum aplikasi beralih ke mode rahasia.
 * **File Utama**:
   - `usb_dongle.py`: Memindai drive eksternal (*removable drives*), membaca file signature `aerosat.sig`, dan memvalidasi hardware volume serial USB flashdisk.
-  - `face_recog.py`: Mengontrol webcam, mendeteksi wajah dengan OpenCV, mengekstrak representasi vektor/embedding wajah, dan membandingkannya dengan template wajah operator yang sah.
+  - `face_recog.py`: Menyimpan beberapa template operator (format v2, migrasi otomatis dari format lama), mendeteksi wajah via YuNet, mengekstrak embedding SFace, dan mencocokkan frame dengan **semua** template (best-of-N).
   - `hasher.py`: Menghasilkan salt acak kriptografi, melakukan hashing passcode dengan algoritma kuat, dan melakukan validasi *constant-time comparison* untuk mencegah *timing attacks*.
 
 ---
@@ -189,7 +193,7 @@ Sadap-Crypto-App/
 * **File Utama**:
   - `main_cover_window.py`: Jendela mode publik stasiun satelit yang menampilkan visual peta bumi, koordinat lintang/bujur, dan telemetri cuaca. Dilengkapi pemicu rahasia (*trigger*).
   - `auth_dialog.py`: Jendela popup otorisasi yang menampilkan status koneksi USB, live feed webcam untuk face scan, dan input passcode.
-  - `secret_dashboard.py`: Jendela induk mode rahasia yang memuat 5 tab utama (Super Text, File AES, Stego Lab, DB Vault, Blockchain Explorer).
+  - `secret_dashboard.py`: Jendela induk mode rahasia dengan 6 tab (Super Text, File AES, Stego Lab, DB Vault, Blockchain, Face Enrollment) dan auto-lock saat dongle dicabut/diganti.
   - `tabs/`: Modul tampilan terpisah untuk masing-masing instrumen kriptografi.
   - `components/`: Komponen UI yang dapat digunakan kembali (*reusable widgets*), seperti penampil kamera, kartu blok, dan peta geospasial.
 
@@ -199,7 +203,7 @@ Sadap-Crypto-App/
 * **Tanggung Jawab**: Skrip utilitas CLI yang dijalankan di luar siklus utama aplikasi untuk kebutuhan setup administratif.
 * **File Utama**:
   - `setup_dongle.py`: Digunakan oleh pemilik sistem untuk memformat dan menyuntikkan token signature ke dalam USB Flashdisk miliknya.
-  - `register_face.py`: Digunakan saat pertama kali untuk mengambil sampel wajah operator melalui webcam dan menyimpannya sebagai template biometrik terenkripsi.
+  - `register_face.py`: CLI multi-wajah tanpa opsi foto; menyimpan embedding dan snapshot PNG yang langsung dienkripsi AES-256-GCM ke `data/keys/faces/`.
 
 ---
 

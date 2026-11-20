@@ -6,7 +6,7 @@ AeroSatGroundStation.spec
 /installer
 installer.iss
 .env
-/data/cache/
+/data/
 __pycache__/
 *.py[cod]
 *$py.class

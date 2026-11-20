@@ -17,16 +17,19 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QLineEdit,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtWidgets import QApplication
 
 from config.settings import DATA_DIR
 from core.auth.hasher import hash_password, verify_password
+from core.auth.usb_dongle import dongle_identity_matches, find_and_verify_dongle
 from gui.tabs.tab_super_text import TabSuperText
 from gui.tabs.tab_file_crypto import TabFileCrypto
 from gui.tabs.tab_stego_lab import TabStegoLab
 from gui.tabs.tab_database_vault import TabDatabaseVault
 from gui.tabs.tab_blockchain_view import TabBlockchainView
+from gui.tabs.tab_face_enrollment import TabFaceEnrollment
 from core.database.db_manager import get_vault_db
 from gui.components.password_line_edit import PasswordLineEdit
 from core.utils.logger import get_logger
@@ -137,15 +140,27 @@ class ChangeMasterCodeDialog(QDialog):
 class SecretDashboardWindow(QMainWindow):
     """The covert classified intelligence suite."""
 
-    def __init__(self, parent=None, operator_callsign: str = "OPERATOR-ALPHA"):
+    def __init__(
+        self,
+        parent=None,
+        operator_callsign: str = "OPERATOR-ALPHA",
+        dongle_payload: dict | None = None,
+    ):
         super().__init__(parent)
         self.operator_callsign = operator_callsign
+        self.dongle_payload = dict(dongle_payload or {})
+        self._dongle_misses = 0
         self.setWindowTitle("Sadap Classified Intelligence Vault — BlackOps Directive v2.4")
         self.resize(1300, 840)
         self.setMinimumSize(1080, 720)
 
         self._init_ui()
         self._log_access_event()
+
+        # Zero-trust: the vault only stays open while the SAME dongle is present.
+        self.dongle_timer = QTimer(self)
+        self.dongle_timer.timeout.connect(self._check_dongle_presence)
+        self.dongle_timer.start(1000)
 
     def _init_ui(self):
         central_widget = QWidget(self)
@@ -202,12 +217,14 @@ class SecretDashboardWindow(QMainWindow):
         self.tab_stego_lab = TabStegoLab(self)
         self.tab_db_vault = TabDatabaseVault(self)
         self.tab_blockchain = TabBlockchainView(self)
+        self.tab_face_enrollment = TabFaceEnrollment(self)
 
         self.tabs.addTab(self.tab_super_text, "📜 Super-Cipher (Vigenère+RSA)")
         self.tabs.addTab(self.tab_file_crypto, "📁 File AES-256 Vault")
         self.tabs.addTab(self.tab_stego_lab, "🛰️ Satellite Stego Lab")
         self.tabs.addTab(self.tab_db_vault, "🗄️ Encrypted DB Vault")
         self.tabs.addTab(self.tab_blockchain, "⛓️ Blockchain Ledger")
+        self.tabs.addTab(self.tab_face_enrollment, "🧬 Face Enrollment")
 
         main_layout.addWidget(self.tabs)
 
@@ -242,6 +259,8 @@ class SecretDashboardWindow(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if reply == QMessageBox.StandardButton.Yes:
+            if hasattr(self, "dongle_timer"):
+                self.dongle_timer.stop()
             try:
                 db = get_vault_db()
                 db.add_audit_log(
@@ -254,6 +273,54 @@ class SecretDashboardWindow(QMainWindow):
             self.close()
             if self.parent():
                 self.parent().showMaximized()
+
+    def _dongle_identity_matches(self, payload: dict) -> bool:
+        """Require the same physical token that was used to unlock the vault."""
+        return dongle_identity_matches(payload, self.dongle_payload)
+
+    def _check_dongle_presence(self):
+        """Auto-lock the vault when the dongle is removed or swapped."""
+        found, _, payload = find_and_verify_dongle(allow_virtual=False)
+        if found and self._dongle_identity_matches(payload):
+            self._dongle_misses = 0
+            return
+
+        # Two consecutive misses avoid false locks during drive re-enumeration.
+        self._dongle_misses += 1
+        if self._dongle_misses >= 2:
+            self._force_lock()
+
+    def _force_lock(self):
+        """Lock without confirmation when the hardware factor disappears."""
+        self.dongle_timer.stop()
+        self._dongle_misses = 0
+        try:
+            get_vault_db().add_audit_log(
+                event_type="AUTH_DONGLE_REMOVED_AUTO_LOCK",
+                details=f"Vault auto-locked for {self.operator_callsign}: USB dongle removed or replaced.",
+                operator=self.operator_callsign,
+            )
+        except Exception:
+            pass
+
+        modal = QApplication.activeModalWidget()
+        if modal is not None and modal is not self:
+            modal.close()
+
+        QMessageBox.warning(
+            self,
+            "Dongle dicabut",
+            "USB Dongle tidak terdeteksi atau diganti.\n\n"
+            "Brankas rahasia dikunci otomatis dan Anda dikembalikan ke mode Cover.",
+        )
+        self.close()
+        if self.parent():
+            self.parent().showMaximized()
+
+    def closeEvent(self, event):
+        if hasattr(self, "dongle_timer"):
+            self.dongle_timer.stop()
+        super().closeEvent(event)
 
     def _toggle_fullscreen(self):
         """Toggle between Fullscreen and Maximized mode."""

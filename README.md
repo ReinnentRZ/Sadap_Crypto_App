@@ -46,7 +46,9 @@ Dashboard cover menampilkan lima sumber data NASA: **EONET**, **NeoWs**, **DONKI
 copy .env.example .env
 ```
 
-Lalu edit `.env` dan isi `NASA_API_KEY` dengan key dari <https://api.nasa.gov/>. Key dibaca sekali saat startup melalui `config/settings.py`. Respons disimpan sementara di `data/cache/nasa/` (diabaikan Git) sehingga dashboard tetap punya data saat internet terputus.
+Lalu edit `.env` dan isi `NASA_API_KEY` dengan key dari <https://api.nasa.gov/>. Key dibaca sekali saat startup melalui `config/settings.py`. Respons disimpan sementara di `data/cache/nasa/` sehingga dashboard tetap punya data saat internet terputus.
+
+> **Catatan penyimpanan**: Seluruh folder `data/` (**termasuk cache, template wajah, credential hash, kunci RSA, dan vault DB**) sengaja **tidak lagi ter-track Git** — hanya file lokal Anda yang menyimpannya. Saat clone pertama kali, aplikasi membuat ulang folder, hash passcode default, keypair RSA, dan database secara otomatis. Wajah operator harus didaftarkan ulang via `🧬 Face Enrollment` (dalam brankas) atau `python tools/register_face.py`. Jangan pernah commit atau force-add isi `data/`.
 
 Menu **Weather Forecast** memakai [Open-Meteo](https://open-meteo.com/) dan **tidak memerlukan API key**. Data prakiraan di-cache terpisah di `data/cache/weather/` dengan TTL 10 menit. Tombol **Gunakan Target Peta** menyamakan lokasi prakiraan dengan target yang sedang ditampilkan di Earth Observation.
 
@@ -80,28 +82,36 @@ Sebelum dapat membuka brankas rahasia, Anda perlu menyiapkan **USB Flashdisk Fis
    > **Catatan Keamanan**: Jika file token tersebut disalin (*copy-paste*) ke flashdisk lain atau harddisk lokal, verifikasi akan otomatis gagal karena serial hardware tidak cocok (*hardware-serial binding*).
    >
    > **Deteksi Otomatis Live (Real-Time)**: Dialog otorisasi dilengkapi detektor otomatis yang aktif memindai bus penyimpanan setiap 600 ms. Begitu flashdisk dicabut, status langsung seketika berubah menjadi merah (*❌ No Authorized USB Dongle Detected*); dan begitu flashdisk dicolokkan kembali, status langsung seketika berubah menjadi hijau (*✅ Dongle Valid*) secara otomatis tanpa perlu menekan tombol Re-Scan.
+    >
+    > **Auto-Lock Brankas**: Setelah brankas terbuka, status dongle tetap dipantau setiap detik. Jika dongle dicabut **atau diganti dengan token lain**, brankas langsung dikunci otomatis dan aplikasi kembali ke mode Cover (audit: `AUTH_DONGLE_REMOVED_AUTO_LOCK`).
 
 ---
 
 ### 2. Cara Mendaftarkan Wajah Biometrik AI (Faktor 2)
 
-Sistem menggunakan model deep neural network canggih **YuNet** dan **SFace** (100% offline lokal) untuk mengekstrak 128-D embedding wajah dan memverifikasinya menggunakan *Cosine Similarity*.
+Sistem menggunakan **YuNet** + **SFace** (100% offline lokal) untuk mengekstrak 128-D embedding wajah dan mencocokkannya dengan *Cosine Similarity*. **Beberapa wajah operator dapat didaftarkan**; salah satu yang cocok akan membuka brankas.
 
-1. Jalankan tool pendaftaran wajah:
-   ```powershell
-   python tools/register_face.py
-   ```
-2. Masukkan nama/callsign operator (misal: `Sadap Commander`).
-3. Pilih salah satu metode pendaftaran:
-   * **Opsi [1] — Ambil Langsung via Kamera Webcam**:
-     - Jendela kamera webcam akan terbuka.
-     - Posisikan wajah Anda tepat di depan kamera hingga muncul kotak hijau (*WAJAH TERDETEKSI*).
-     - Tekan tombol **SPASI** untuk mengambil foto dan mengekstrak template biometrik.
-   * **Opsi [2] — Ambil dari Berkas Foto Potret (PNG/JPG)**:
-     - Masukkan path lengkap ke berkas foto potret wajah Anda (misal: `C:\Users\User\Pictures\my_photo.jpg`).
-     - Tool akan mendeteksi wajah di dalam foto dan mengekstrak vektor fiturnya.
-4. Template biometrik wajah akan disimpan terenkripsi di `data/keys/face_template.npz`.
-5. **Selesai!** Pada dialog autentikasi, Anda cukup menyalakan kamera atau mengklik tombol *"Verify via Photo..."* untuk mencocokkan wajah Anda secara instan.
+Pendaftaran/pengelolaan hanya tersedia **di dalam Secret Dashboard** (tab `🧬 Face Enrollment`) atau lewat CLI:
+
+1. Buka brankas, lalu pilih tab `🧬 Face Enrollment`.
+2. Nyalakan kamera, masukkan nama/callsign operator dan **passphrase enkripsi snapshot**, lalu klik **Capture & Daftar Wajah**.
+3. Tab tersebut juga menyediakan **Lihat Snapshot** (passphrase yang sama) dan **Hapus Operator**.
+
+Alternatif CLI (**kamera saja**, tanpa opsi foto):
+
+```powershell
+python tools/register_face.py
+```
+
+- Menu: daftar/perbarui wajah, lihat daftar operator, hapus operator.
+- Passphrase diminta lewat prompt tersembunyi (`getpass`) dan tidak pernah disimpan.
+
+Penyimpanan:
+
+- Embedding semua operator: `data/keys/face_template.npz` (format v2, otomatis bermigrasi dari format lama).
+- Snapshot wajah: `data/keys/faces/<nama>_<timestamp>.png.enc`, **dienkripsi AES-256-GCM** memakai `core/crypto/file_aes.py`. PNG plaintext tidak pernah ditinggalkan di disk.
+
+Pada dialog autentikasi, nyalakan kamera — **tidak ada verifikasi via foto**.
 
 ---
 
@@ -210,17 +220,18 @@ python main.py
      ```
    - Modal otorisasi **Zero-Trust 3-Factor** akan muncul:
      - **Faktor 1 (USB)**: Harus ada USB flashdisk tercolok yang sudah diinjeksi via `tools/setup_dongle.py`. Jika tidak ada flashdisk tercolok, status berwarna merah: `❌ No Authorized USB Dongle Detected`.
-     - **Faktor 2 (Face)**: Nyalakan webcam atau klik `Verify via Photo...` untuk memverifikasi wajah sesuai template yang didaftarkan via `tools/register_face.py`.
+     - **Faktor 2 (Face)**: Nyalakan webcam. Wajah Anda dicocokkan dengan **semua** operator yang terdaftar; tidak ada opsi verifikasi via foto.
      - **Faktor 3 (Passcode)**: Ketik passcode master `Sadap-Commander-2026!`.
    - Klik **"🔓 Unlock Classified Vault"**.
 4. **Langkah 4: Operasi Brankas Kriptografi**
    - Jendela stasiun satelit disembunyikan dan jendela **Sadap Classified Vault** akan terbuka.
-   - Gunakan 5 tab instrumen kripto:
+   - Gunakan 6 tab instrumen kripto:
      - 📜 **Super-Cipher**: Enkripsi dan dekripsi pesan rahasia ganda (Vigenère + RSA).
      - 📁 **File AES-256**: Enkripsi berkas apa saja menjadi format biner `.enc` dan dekripsi kembali.
      - 🛰️ **Stego Lab**: Sisipkan pesan rahasia ke dalam citra satelit dan ekstrak kembali.
      - 🗄️ **DB Vault**: Akses tabel SQLite yang terenkripsi penuh di disk.
      - ⛓️ **Blockchain**: Lakukan audit integritas rantai blok dan daftarkan sidik jari berkas.
+      - 🧬 **Face Enrollment**: Kelola beberapa wajah operator, simpan snapshot terenkripsi, dan lihat/hapus data biometrik (hanya dari dalam brankas).
 5. **Langkah 5: Mengunci Kembali ke Mode Cover**
    - Klik tombol merah **"🔒 Lock & Return to Cover Mode"** di pojok kanan atas.
    - Brankas rahasia langsung tertutup dan jendela stasiun satelit muncul kembali tanpa jejak.

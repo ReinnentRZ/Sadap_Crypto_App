@@ -1,14 +1,12 @@
 """
-Sadap GroundStation - Main Public Cover Window (The Chameleon Story)
-A dashboard-style satellite earth observation console. NASA modules and the
-Open-Meteo forecast are selectable from the sidebar. The 3-factor vault remains
-completely hidden and can ONLY be triggered via Ctrl + Shift + S.
+Sadap GroundStation - Main Public Cover Window (Dashboard Shell)
 """
 import datetime
 
-from PyQt6.QtCore import QTimer, pyqtSignal
+from PyQt6.QtCore import QTimer, pyqtSignal, Qt
 from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -37,19 +35,19 @@ logger = get_logger("MainCoverWindow")
 
 
 PAGE_DEFS: list[tuple[str, str]] = [
-    ("overview", "🏠 Overview"),
-    ("map", "🗺️ Earth Observation"),
-    ("forecast", "🌤️ Weather Forecast"),
-    ("events", "🌋 Natural Events"),
-    ("weather", "☀️ Space Weather (NASA)"),
-    ("neows", "☄️ Near-Earth Objects"),
-    ("imagery", "🌍 Earth Imagery"),
-    ("telemetry", "🛰️ Satellite Telemetry"),
+    ("overview", "📊  Overview"),
+    ("map", "🗺️  Earth Observation"),
+    ("forecast", "🌤️  Weather Forecast"),
+    ("events", "🌍  Natural Events"),
+    ("weather", "☀️  Space Weather"),
+    ("neows", "☄️  Near-Earth Objects"),
+    ("imagery", "🛰️  Earth Imagery"),
+    ("telemetry", "📡  Satellite Telemetry"),
 ]
 
 
 class MainCoverWindow(QMainWindow):
-    """Public cover dashboard shell."""
+    """Public cover dashboard shell with modern light layout."""
 
     sign_out_requested = pyqtSignal()
 
@@ -61,7 +59,7 @@ class MainCoverWindow(QMainWindow):
             "role": "Observation Specialist",
         }
 
-        self.setWindowTitle("Sadap GroundStation — Earth Observation & Orbit Telemetry Command v2.4")
+        self.setWindowTitle("Sadap GroundStation - Earth Observation Command Console v2.4")
         self.resize(1280, 820)
         self.setMinimumSize(1080, 720)
 
@@ -81,67 +79,79 @@ class MainCoverWindow(QMainWindow):
 
         self._update_clock()
 
-    # ------------------------------------------------------------------
-    # UI construction
-    # ------------------------------------------------------------------
     def _init_ui(self) -> None:
         central_widget = QWidget(self)
+        central_widget.setStyleSheet("background-color: #F8FAFC;")
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(14, 10, 14, 8)
-        main_layout.setSpacing(8)
+        main_layout.setContentsMargins(16, 16, 16, 12)
+        main_layout.setSpacing(12)
 
-        # Top header & operator session bar (fullscreen button intentionally removed)
-        top_bar = QHBoxLayout()
+        # Top header
+        header_frame = QFrame()
+        header_frame.setObjectName("statusCard")
+        header_layout = QHBoxLayout(header_frame)
+        header_layout.setContentsMargins(20, 16, 20, 16)
+        header_layout.setSpacing(12)
 
-        station_info = QVBoxLayout()
-        title_lbl = QLabel("🛰️ SADAP GROUNDSTATION — EARTH OBSERVATION COMMAND CONSOLE")
-        title_lbl.setStyleSheet("font-size: 15px; font-weight: bold; color: #0284C7;")
-        station_info.addWidget(title_lbl)
+        title_box = QVBoxLayout()
+        title_box.setSpacing(2)
+        self.page_title_label = QLabel("Overview")
+        self.page_title_label.setObjectName("pageTitle")
+        self.page_subtitle_label = QLabel("Mission summary and quick access to observation modules.")
+        self.page_subtitle_label.setObjectName("pageSubtitle")
+        self.page_subtitle_label.setWordWrap(True)
+        title_box.addWidget(self.page_title_label)
+        title_box.addWidget(self.page_subtitle_label)
+        header_layout.addLayout(title_box, stretch=1)
 
-        sub_title = QLabel("National Geospatial Research & Multi-Mission Orbit Telemetry System")
-        sub_title.setStyleSheet("color: #64748B; font-size: 11px;")
-        station_info.addWidget(sub_title)
-        top_bar.addLayout(station_info)
+        right_box = QHBoxLayout()
+        right_box.setSpacing(8)
+        right_box.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        top_bar.addStretch()
-
-        op_box = QHBoxLayout()
-        op_lbl = QLabel(
-            f"👤 Operator: <b>{self.operator_data.get('full_name')}</b> "
-            f"({self.operator_data.get('role')})"
+        user_text = (
+            f"<b>{self.operator_data.get('full_name', 'Operator')}</b><br>"
+            f"<span style='color:#64748B; font-size:11px;'>{self.operator_data.get('role', 'Operator')}</span>"
         )
-        op_lbl.setStyleSheet(
-            "background-color: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 4px; "
-            "padding: 4px 8px; font-size: 11px;"
-        )
-        op_box.addWidget(op_lbl)
+        self.user_chip = QLabel(user_text)
+        self.user_chip.setObjectName("userChip")
+        self.user_chip.setTextFormat(Qt.TextFormat.RichText)
+        right_box.addWidget(self.user_chip)
 
-        self.btn_sign_out = QPushButton("🚪 Sign Out")
-        self.btn_sign_out.setObjectName("secondaryBtn")
-        self.btn_sign_out.setStyleSheet("padding: 4px 10px; font-size: 11px;")
-        self.btn_sign_out.clicked.connect(self._handle_sign_out)
-        op_box.addWidget(self.btn_sign_out)
-        top_bar.addLayout(op_box)
-
-        self.clock_label = QLabel("UTC TIME: --:--:--")
+        self.clock_label = QLabel("UTC --:--:--")
         self.clock_label.setStyleSheet(
-            "font-family: monospace; font-size: 12px; font-weight: bold; color: #334155; "
-            "padding: 4px 8px; background-color: #E2E8F0; border-radius: 4px;"
+            "font-family: 'Consolas', 'Segoe UI', monospace; font-size: 12px; font-weight: 600; "
+            "color: #334155; padding: 8px 10px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;"
         )
-        top_bar.addWidget(self.clock_label)
-        main_layout.addLayout(top_bar)
+        right_box.addWidget(self.clock_label)
 
-        # Dashboard body: sidebar + stacked pages
+        self.btn_sign_out = QPushButton("Sign Out")
+        self.btn_sign_out.setObjectName("secondaryBtn")
+        self.btn_sign_out.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_sign_out.setMinimumHeight(36)
+        self.btn_sign_out.clicked.connect(self._handle_sign_out)
+        right_box.addWidget(self.btn_sign_out)
+
+        header_layout.addLayout(right_box)
+        main_layout.addWidget(header_frame)
+
+        # Body
         body = QHBoxLayout()
-        body.setSpacing(10)
+        body.setSpacing(12)
 
         self.sidebar = CoverSidebar(PAGE_DEFS)
         body.addWidget(self.sidebar)
 
+        content_frame = QFrame()
+        content_frame.setStyleSheet("QFrame { background: transparent; border: none; }")
+        content_layout = QVBoxLayout(content_frame)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
+
         self.stacked = QStackedWidget()
-        self.stacked.setStyleSheet("QStackedWidget { background: #F8FAFC; border-radius: 8px; }")
-        body.addWidget(self.stacked, stretch=1)
+        self.stacked.setStyleSheet("QStackedWidget { background: transparent; }")
+        content_layout.addWidget(self.stacked)
+        body.addWidget(content_frame, stretch=1)
 
         self.overview_page = CoverOverviewPage()
         self.map_page = CoverMapPage()
@@ -176,13 +186,9 @@ class MainCoverWindow(QMainWindow):
         main_layout.addLayout(body, stretch=1)
 
         self.status_bar = QStatusBar()
-        self.status_bar.setStyleSheet("color: #475569; font-size: 11px; background-color: #F1F5F9;")
         self.setStatusBar(self.status_bar)
         self.show_page("overview")
 
-    # ------------------------------------------------------------------
-    # Navigation
-    # ------------------------------------------------------------------
     def show_page(self, key: str) -> None:
         page = self._pages.get(key)
         if page is None:
@@ -191,19 +197,27 @@ class MainCoverWindow(QMainWindow):
         self.sidebar.select(key)
 
         labels = dict(PAGE_DEFS)
+        subtitles = {
+            "overview": "Mission summary and quick access to observation modules.",
+            "map": "Interactive satellite map and target observation controls.",
+            "forecast": "Global weather forecast powered by Open-Meteo.",
+            "events": "Active natural events tracked by NASA EONET.",
+            "weather": "Space weather notifications from NASA DONKI.",
+            "neows": "Near-Earth object feed and hazard overview.",
+            "imagery": "EPIC Earth imagery and Astronomy Picture of the Day.",
+            "telemetry": "Orbital tracking, pass schedule, and live RX telemetry.",
+        }
+        label = labels.get(key, key)
+        self.page_title_label.setText(label.split("  ", 1)[-1] if "  " in label else label)
+        self.page_subtitle_label.setText(subtitles.get(key, ""))
         self.status_bar.showMessage(
-            "Station Status: OPERATIONAL (ONLINE)  |  "
-            f"Active View: {labels.get(key, key)}  |  "
-            "Receivers: Primary X-Band (150 Mbps) + S-Band Uplink Locked  |  "
-            "Data Stream: NOMINAL (CRC32 Verified)"
+            f"Station: Operational  •  Active View: {self.page_title_label.text()}  •  Data links nominal"
         )
 
     def _locate_on_map(self, lat: float, lon: float, zoom: int) -> None:
         self.show_page("map")
         self.map_page.fly_to_coordinates(lat, lon, zoom)
-        self.status_bar.showMessage(
-            f"Map target updated from NASA event: {lat:.4f}, {lon:.4f} (zoom {zoom}x)"
-        )
+        self.status_bar.showMessage(f"Map target updated from NASA event: {lat:.4f}, {lon:.4f} (zoom {zoom}x)")
 
     def _apply_map_target_to_forecast(self) -> None:
         def _apply(target):
@@ -211,9 +225,7 @@ class MainCoverWindow(QMainWindow):
                 return
             lat, lon, label = target
             self.forecast_page.apply_map_target(lat, lon, label)
-            self.status_bar.showMessage(
-                f"Forecast location synced from map: {label} ({lat:.4f}, {lon:.4f})"
-            )
+            self.status_bar.showMessage(f"Forecast location synced from map: {label} ({lat:.4f}, {lon:.4f})")
 
         self.map_page.get_current_target(_apply)
 
@@ -227,15 +239,10 @@ class MainCoverWindow(QMainWindow):
             updated=metrics.get("updated", "—"),
         )
 
-    # ------------------------------------------------------------------
-    # Hidden access & window controls
-    # ------------------------------------------------------------------
     def _setup_secret_shortcut(self) -> None:
-        """Secret hotkey trigger: Ctrl+Shift+S directly invokes the 3-Factor Gatekeeper."""
         self.secret_shortcut = QShortcut(QKeySequence("Ctrl+Shift+S"), self)
         self.secret_shortcut.activated.connect(self._trigger_secret_auth)
 
-        # F11 remains active even though the visible button was removed.
         self.f11_shortcut = QShortcut(QKeySequence("F11"), self)
         self.f11_shortcut.activated.connect(self._toggle_fullscreen)
 
@@ -247,7 +254,7 @@ class MainCoverWindow(QMainWindow):
 
     def _update_clock(self) -> None:
         now_utc = datetime.datetime.now(datetime.timezone.utc)
-        self.clock_label.setText(f"UTC TIME: {now_utc.strftime('%H:%M:%S')}")
+        self.clock_label.setText(f"UTC {now_utc.strftime('%H:%M:%S')}")
 
     def _generate_live_telemetry_event(self) -> None:
         self.telemetry_page.append_telemetry_event()
@@ -264,7 +271,6 @@ class MainCoverWindow(QMainWindow):
             self.sign_out_requested.emit()
 
     def _trigger_secret_auth(self) -> None:
-        """Invoke the Zero-Trust 3-Factor Gatekeeper Dialog (triggered ONLY by Ctrl+Shift+S)."""
         auth_dlg = AuthDialog(self)
         if auth_dlg.exec() == AuthDialog.DialogCode.Accepted:
             callsign = auth_dlg.operator_callsign

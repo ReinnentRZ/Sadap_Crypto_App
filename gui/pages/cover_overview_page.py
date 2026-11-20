@@ -12,22 +12,12 @@ from PyQt6.QtWidgets import (
 
 
 class MetricCard(QFrame):
-    """KPI card with a single accent strip and no nested card borders."""
+    """KPI card with accent strip and clear value hierarchy."""
 
     def __init__(self, title: str, accent: str, parent=None):
         super().__init__(parent)
-        # Target only this card. A bare ``QFrame {}`` selector also styles any
-        # nested QFrame and stacks another border/header on top of this one.
         self.setObjectName("metricCard")
-        self.setStyleSheet(
-            """
-            QFrame#metricCard {
-                background-color: #FFFFFF;
-                border: 1px solid #E2E8F0;
-                border-radius: 8px;
-            }
-            """
-        )
+        self.setMinimumHeight(132)
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -35,31 +25,33 @@ class MetricCard(QFrame):
 
         accent_bar = QWidget()
         accent_bar.setFixedHeight(4)
-        accent_bar.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         accent_bar.setStyleSheet(
-            f"background-color: {accent}; border-top-left-radius: 8px; border-top-right-radius: 8px;"
+            f"background-color: {accent}; border-top-left-radius: 12px; border-top-right-radius: 12px;"
         )
         outer.addWidget(accent_bar)
 
         body = QWidget()
         layout = QVBoxLayout(body)
-        layout.setContentsMargins(14, 12, 14, 12)
-        layout.setSpacing(4)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(6)
 
         self.title_label = QLabel(title)
         self.title_label.setStyleSheet(
-            "color: #64748B; font-size: 11px; font-weight: 700; letter-spacing: 0.4px;"
+            "color: #64748B; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;"
         )
 
         self.value_label = QLabel("—")
-        self.value_label.setStyleSheet(f"color: {accent}; font-size: 26px; font-weight: 800;")
+        self.value_label.setStyleSheet(f"color: {accent}; font-size: 30px; font-weight: 700;")
 
         self.note_label = QLabel("Menunggu sinkronisasi data")
-        self.note_label.setStyleSheet("color: #94A3B8; font-size: 10px;")
+        self.note_label.setWordWrap(True)
+        self.note_label.setStyleSheet("color: #94A3B8; font-size: 12px;")
 
         layout.addWidget(self.title_label)
         layout.addWidget(self.value_label)
+        layout.addSpacing(2)
         layout.addWidget(self.note_label)
+        layout.addStretch(1)
         outer.addWidget(body, stretch=1)
 
     def set_value(self, value: str, note: str) -> None:
@@ -78,21 +70,29 @@ class CoverOverviewPage(QWidget):
 
     def _init_ui(self) -> None:
         main = QVBoxLayout(self)
-        main.setContentsMargins(20, 18, 20, 18)
-        main.setSpacing(14)
+        main.setContentsMargins(4, 4, 4, 4)
+        main.setSpacing(16)
 
-        title = QLabel("MISSION OVERVIEW")
-        title.setStyleSheet("font-size: 20px; font-weight: 800; color: #0F172A;")
-        subtitle = QLabel(
-            "Ringkasan data NASA Open APIs, prakiraan Open-Meteo, dan status stasiun. Pilih modul di sidebar untuk analisis detail."
+        intro = QFrame()
+        intro.setObjectName("statusCard")
+        intro_layout = QVBoxLayout(intro)
+        intro_layout.setContentsMargins(20, 18, 20, 18)
+        intro_layout.setSpacing(4)
+        intro_title = QLabel("Mission Overview")
+        intro_title.setStyleSheet("font-size: 20px; font-weight: 700; color: #1E293B;")
+        intro_sub = QLabel(
+            "Ringkasan data NASA Open APIs, prakiraan Open-Meteo, dan status stasiun. "
+            "Pilih modul di sidebar untuk analisis detail."
         )
-        subtitle.setStyleSheet("color: #64748B; font-size: 12px;")
-        main.addWidget(title)
-        main.addWidget(subtitle)
+        intro_sub.setWordWrap(True)
+        intro_sub.setStyleSheet("color: #64748B; font-size: 13px;")
+        intro_layout.addWidget(intro_title)
+        intro_layout.addWidget(intro_sub)
+        main.addWidget(intro)
 
-        self.card_neos = MetricCard("NEAR-EARTH OBJECTS", "#0284C7")
+        self.card_neos = MetricCard("NEAR-EARTH OBJECTS", "#2563EB")
         self.card_hazard = MetricCard("POTENTIALLY HAZARDOUS", "#DC2626")
-        self.card_events = MetricCard("ACTIVE NATURAL EVENTS", "#059669")
+        self.card_events = MetricCard("ACTIVE NATURAL EVENTS", "#16A34A")
         self.card_alerts = MetricCard("SPACE WEATHER NOTICES", "#D97706")
 
         cards = QGridLayout()
@@ -105,52 +105,52 @@ class CoverOverviewPage(QWidget):
 
         status_frame = QFrame()
         status_frame.setObjectName("statusCard")
-        status_frame.setStyleSheet(
-            """
-            QFrame#statusCard {
-                background-color: #F8FAFC;
-                border: 1px solid #E2E8F0;
-                border-radius: 8px;
-            }
-            """
-        )
         status_layout = QVBoxLayout(status_frame)
-        status_layout.setContentsMargins(14, 12, 14, 12)
-        status_layout.setSpacing(4)
+        status_layout.setContentsMargins(20, 16, 20, 16)
+        status_layout.setSpacing(6)
 
-        status_title = QLabel("DATA LINK STATUS")
-        status_title.setStyleSheet("color: #334155; font-size: 12px; font-weight: 800;")
+        status_title = QLabel("Data Link Status")
+        status_title.setStyleSheet("color: #1E293B; font-size: 16px; font-weight: 600;")
         self.status_label = QLabel("NASA API: siap digunakan. Buka modul untuk memuat data.")
-        self.status_label.setStyleSheet("color: #475569; font-size: 12px;")
+        self.status_label.setWordWrap(True)
+        self.status_label.setStyleSheet("color: #475569; font-size: 13px;")
         self.updated_label = QLabel("Terakhir disinkronisasi: —")
-        self.updated_label.setStyleSheet("color: #94A3B8; font-size: 10px;")
+        self.updated_label.setStyleSheet("color: #94A3B8; font-size: 12px;")
         status_layout.addWidget(status_title)
         status_layout.addWidget(self.status_label)
         status_layout.addWidget(self.updated_label)
         main.addWidget(status_frame)
 
-        quick_title = QLabel("QUICK ACCESS")
-        quick_title.setStyleSheet("color: #334155; font-size: 12px; font-weight: 800; margin-top: 4px;")
-        main.addWidget(quick_title)
+        quick_frame = QFrame()
+        quick_frame.setObjectName("statusCard")
+        quick_layout_outer = QVBoxLayout(quick_frame)
+        quick_layout_outer.setContentsMargins(20, 16, 20, 16)
+        quick_layout_outer.setSpacing(10)
+        quick_title = QLabel("Quick Access")
+        quick_title.setStyleSheet("color: #1E293B; font-size: 16px; font-weight: 600;")
+        quick_layout_outer.addWidget(quick_title)
 
-        quick_layout = QHBoxLayout()
-        quick_layout.setSpacing(8)
+        quick_grid = QGridLayout()
+        quick_grid.setHorizontalSpacing(10)
+        quick_grid.setVerticalSpacing(10)
         self._quick_buttons = [
-            ("🗺️ Earth Observation", "map"),
-            ("🌤️ Weather Forecast", "forecast"),
-            ("🌋 Natural Events", "events"),
-            ("☀️ Space Weather", "weather"),
-            ("☄️ NEO Feed", "neows"),
-            ("🌍 Earth Imagery", "imagery"),
+            ("🗺️  Earth Observation", "map"),
+            ("🌤️  Weather Forecast", "forecast"),
+            ("🌍  Natural Events", "events"),
+            ("☀️  Space Weather", "weather"),
+            ("☄️  NEO Feed", "neows"),
+            ("🛰️  Earth Imagery", "imagery"),
         ]
-        for label, key in self._quick_buttons:
+        for i, (label, key) in enumerate(self._quick_buttons):
             button = QPushButton(label)
             button.setObjectName("secondaryBtn")
-            button.setStyleSheet("padding: 9px 12px; font-weight: 600;")
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
+            button.setMinimumHeight(40)
             button.clicked.connect(lambda _checked=False, k=key: self.quick_jump.emit(k))
-            quick_layout.addWidget(button)
-        main.addLayout(quick_layout)
-        main.addStretch()
+            quick_grid.addWidget(button, i // 3, i % 3)
+        quick_layout_outer.addLayout(quick_grid)
+        main.addWidget(quick_frame)
+        main.addStretch(1)
 
     def set_metrics(
         self,
@@ -162,7 +162,6 @@ class CoverOverviewPage(QWidget):
         source: str = "NASA Open APIs",
         updated: str = "—",
     ) -> None:
-        """Update KPI cards as each NASA module finishes loading."""
         if neo_count is not None:
             self.card_neos.set_value(str(neo_count), "objek dalam rentang tanggal")
         if hazard_count is not None:

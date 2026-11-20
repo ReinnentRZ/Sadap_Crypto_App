@@ -32,10 +32,12 @@ Sadap-Crypto-App/
 │   │   ├── face_recog.py           # Face detection & landmark matching (OpenCV)
 │   │   └── hasher.py               # Algoritma hash password (PBKDF2)
 │   │
-│   ├── api/                        # Klien NASA Open APIs (urllib + cache JSON)
+│   ├── api/                        # Klien API publik (urllib + cache JSON)
 │   │   ├── __init__.py
 │   │   ├── nasa_endpoints.py       # Katalog EONET, NeoWs, DONKI, EPIC, APOD
-│   │   └── nasa_client.py          # Fetch async-friendly, TTL cache, stale-cache fallback
+│   │   ├── nasa_client.py          # Fetch NASA, TTL cache, stale-cache fallback
+│   │   ├── weather_endpoints.py    # Endpoint Open-Meteo + pemetaan kode WMO
+│   │   └── weather_client.py       # Fetch prakiraan cuaca + cache lokal
 │   │
 │   ├── crypto/                     # Modul Enkripsi & Dekripsi
 │   │   ├── __init__.py
@@ -62,12 +64,14 @@ Sadap-Crypto-App/
 │   └── utils/                      # Fungsi pembantu umum
 │       ├── __init__.py
 │       ├── crypto_helpers.py       # Helper konversi byte, hex, base64, dan random sagilt
-│       └── logger.py               # Logging aktivitas sistem
+│       ├── logger.py               # Logging aktivitas sistem
+│       └── text_utils.py           # Pembersih tag HTML untuk teks APOD NASA
 │
 ├── data/                           # Direktori penyimpanan data lokal (dikecualikan dari git) 
 │   ├── vault.db                    # Basis data SQLite terenkripsi lokal
 │   ├── blockchain_ledger.json      # File persistensi rantai blok
 │   ├── cache/nasa/                 # Cache respons & gambar NASA (diabaikan Git)
+│   ├── cache/weather/              # Cache prakiraan Open-Meteo (diabaikan Git)
 │   └── keys/                       # Penyimpanan kunci publik/privat terdaftar
 │
 ├── gui/                            # Antarmuka Pengguna Berbasis PyQt6 (Tema Terang)
@@ -81,6 +85,7 @@ Sadap-Crypto-App/
 │   │   ├── __init__.py
 │   │   ├── cover_overview_page.py      # Kartu ringkasan & quick access
 │   │   ├── cover_map_page.py           # Peta satelit + preset kota Indonesia
+│   │   ├── cover_weather_forecast_page.py # Prakiraan Open-Meteo + tabel harian/3 jam
 │   │   ├── cover_natural_events_page.py# EONET
 │   │   ├── cover_space_weather_page.py # DONKI
 │   │   ├── cover_neows_page.py         # NeoWs
@@ -101,7 +106,8 @@ Sadap-Crypto-App/
 │       ├── satellite_map_widget.py       # Widget peta simulasi stasiun bumi
 │       ├── google_satellite_map_widget.py# Peta Leaflet/Google/ESRI interaktif (WebEngine)
 │       ├── cover_sidebar.py               # Navigasi sidebar dashboard cover
-│       └── nasa_worker.py                 # QRunnable untuk request NASA & gambar
+│       ├── nasa_worker.py                 # QRunnable untuk request NASA & gambar
+│       └── weather_worker.py              # QRunnable untuk request Open-Meteo
 │
 ├── tools/                          # Script utilitas administratif & penyiapan
 │   ├── setup_dongle.py             # Script CLI untuk mendaftarkan USB Flashdisk menjadi Dongle resmi

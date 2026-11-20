@@ -69,6 +69,11 @@ NASA_CACHE_DIR = DATA_DIR / "cache" / "nasa"
 NASA_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 NASA_CACHE_TTL_SECONDS = 900  # 15 minutes
 
+# Open-Meteo public weather forecast (no API key required)
+WEATHER_CACHE_DIR = DATA_DIR / "cache" / "weather"
+WEATHER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+WEATHER_CACHE_TTL_SECONDS = 600  # 10 minutes
+
 # Database & Ledger File Paths
 DB_PATH = DATA_DIR / "vault.db"
 BLOCKCHAIN_PATH = DATA_DIR / "blockchain_ledger.json"

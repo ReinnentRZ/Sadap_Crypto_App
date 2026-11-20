@@ -15,6 +15,7 @@ from PyQt6.QtCore import Qt, QThreadPool
 from config.settings import NASA_API_KEY
 from core.api.nasa_client import NasaResponse
 from core.api.nasa_endpoints import APOD_URL, EPIC_NATURAL_IMAGES_URL, epic_image_url
+from core.utils.text_utils import html_to_plain
 from gui.components.nasa_worker import NasaFetchWorker, NasaImageWorker
 
 
@@ -141,7 +142,7 @@ class CoverEarthImageryPage(QWidget):
             return
 
         self.epic_text.setPlainText(
-            f"Tanggal: {date}\nKeterangan: {first.get('caption', '—')}\n"
+            f"Tanggal: {date}\nKeterangan: {html_to_plain(first.get('caption')) or '—'}\n"
             f"Koordinat pusat: {first.get('centroid_coordinates', {})}"
         )
         url = epic_image_url(image_name, date, NASA_API_KEY)
@@ -162,8 +163,8 @@ class CoverEarthImageryPage(QWidget):
             self.apod_status.setText("APOD: format data tidak dikenali.")
             return
 
-        title = data.get("title", "Astronomy Picture of the Day")
-        explanation = data.get("explanation", "")
+        title = html_to_plain(data.get("title")) or "Astronomy Picture of the Day"
+        explanation = html_to_plain(data.get("explanation") or data.get("basic_html"))
         image_url = data.get("hdurl") or data.get("url") or ""
         permalink = data.get("permalink") or image_url or "—"
         mode = "CACHE" if response.from_cache else "LIVE"

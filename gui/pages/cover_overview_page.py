@@ -1,5 +1,5 @@
 """Default landing page of the public cover dashboard."""
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QFrame,
     QGridLayout,
@@ -12,26 +12,44 @@ from PyQt6.QtWidgets import (
 
 
 class MetricCard(QFrame):
-    """Small KPI card used on the overview dashboard."""
+    """KPI card with a single accent strip and no nested card borders."""
 
     def __init__(self, title: str, accent: str, parent=None):
         super().__init__(parent)
+        # Target only this card. A bare ``QFrame {}`` selector also styles any
+        # nested QFrame and stacks another border/header on top of this one.
+        self.setObjectName("metricCard")
         self.setStyleSheet(
-            f"""
-            QFrame {{
+            """
+            QFrame#metricCard {
                 background-color: #FFFFFF;
                 border: 1px solid #E2E8F0;
-                border-top: 3px solid {accent};
                 border-radius: 8px;
-            }}
+            }
             """
         )
-        layout = QVBoxLayout(self)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        accent_bar = QWidget()
+        accent_bar.setFixedHeight(4)
+        accent_bar.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        accent_bar.setStyleSheet(
+            f"background-color: {accent}; border-top-left-radius: 8px; border-top-right-radius: 8px;"
+        )
+        outer.addWidget(accent_bar)
+
+        body = QWidget()
+        layout = QVBoxLayout(body)
         layout.setContentsMargins(14, 12, 14, 12)
         layout.setSpacing(4)
 
         self.title_label = QLabel(title)
-        self.title_label.setStyleSheet("color: #64748B; font-size: 11px; font-weight: 700; letter-spacing: 0.4px;")
+        self.title_label.setStyleSheet(
+            "color: #64748B; font-size: 11px; font-weight: 700; letter-spacing: 0.4px;"
+        )
 
         self.value_label = QLabel("—")
         self.value_label.setStyleSheet(f"color: {accent}; font-size: 26px; font-weight: 800;")
@@ -42,6 +60,7 @@ class MetricCard(QFrame):
         layout.addWidget(self.title_label)
         layout.addWidget(self.value_label)
         layout.addWidget(self.note_label)
+        outer.addWidget(body, stretch=1)
 
     def set_value(self, value: str, note: str) -> None:
         self.value_label.setText(value)
@@ -65,7 +84,7 @@ class CoverOverviewPage(QWidget):
         title = QLabel("MISSION OVERVIEW")
         title.setStyleSheet("font-size: 20px; font-weight: 800; color: #0F172A;")
         subtitle = QLabel(
-            "Ringkasan data NASA Open APIs dan status stasiun. Pilih modul di sidebar untuk analisis detail."
+            "Ringkasan data NASA Open APIs, prakiraan Open-Meteo, dan status stasiun. Pilih modul di sidebar untuk analisis detail."
         )
         subtitle.setStyleSheet("color: #64748B; font-size: 12px;")
         main.addWidget(title)
@@ -85,9 +104,10 @@ class CoverOverviewPage(QWidget):
         main.addLayout(cards)
 
         status_frame = QFrame()
+        status_frame.setObjectName("statusCard")
         status_frame.setStyleSheet(
             """
-            QFrame {
+            QFrame#statusCard {
                 background-color: #F8FAFC;
                 border: 1px solid #E2E8F0;
                 border-radius: 8px;
@@ -117,6 +137,7 @@ class CoverOverviewPage(QWidget):
         quick_layout.setSpacing(8)
         self._quick_buttons = [
             ("🗺️ Earth Observation", "map"),
+            ("🌤️ Weather Forecast", "forecast"),
             ("🌋 Natural Events", "events"),
             ("☀️ Space Weather", "weather"),
             ("☄️ NEO Feed", "neows"),

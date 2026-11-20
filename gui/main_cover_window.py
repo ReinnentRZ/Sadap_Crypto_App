@@ -1,8 +1,8 @@
 """
 Sadap GroundStation - Main Public Cover Window (The Chameleon Story)
-A dashboard-style satellite earth observation console. All NASA modules are
-selectable from the sidebar. The 3-factor vault remains completely hidden and
-can ONLY be triggered via Ctrl + Shift + S.
+A dashboard-style satellite earth observation console. NASA modules and the
+Open-Meteo forecast are selectable from the sidebar. The 3-factor vault remains
+completely hidden and can ONLY be triggered via Ctrl + Shift + S.
 """
 import datetime
 
@@ -29,6 +29,7 @@ from gui.pages.cover_natural_events_page import CoverNaturalEventsPage
 from gui.pages.cover_overview_page import CoverOverviewPage
 from gui.pages.cover_space_weather_page import CoverSpaceWeatherPage
 from gui.pages.cover_telemetry_page import CoverTelemetryPage
+from gui.pages.cover_weather_forecast_page import CoverWeatherForecastPage
 from gui.secret_dashboard import SecretDashboardWindow
 from core.utils.logger import get_logger
 
@@ -38,8 +39,9 @@ logger = get_logger("MainCoverWindow")
 PAGE_DEFS: list[tuple[str, str]] = [
     ("overview", "🏠 Overview"),
     ("map", "🗺️ Earth Observation"),
+    ("forecast", "🌤️ Weather Forecast"),
     ("events", "🌋 Natural Events"),
-    ("weather", "☀️ Space Weather"),
+    ("weather", "☀️ Space Weather (NASA)"),
     ("neows", "☄️ Near-Earth Objects"),
     ("imagery", "🌍 Earth Imagery"),
     ("telemetry", "🛰️ Satellite Telemetry"),
@@ -143,6 +145,7 @@ class MainCoverWindow(QMainWindow):
 
         self.overview_page = CoverOverviewPage()
         self.map_page = CoverMapPage()
+        self.forecast_page = CoverWeatherForecastPage()
         self.events_page = CoverNaturalEventsPage()
         self.weather_page = CoverSpaceWeatherPage()
         self.neows_page = CoverNeowsPage()
@@ -152,6 +155,7 @@ class MainCoverWindow(QMainWindow):
         self._pages = {
             "overview": self.overview_page,
             "map": self.map_page,
+            "forecast": self.forecast_page,
             "events": self.events_page,
             "weather": self.weather_page,
             "neows": self.neows_page,
@@ -163,6 +167,7 @@ class MainCoverWindow(QMainWindow):
 
         self.sidebar.page_selected.connect(self.show_page)
         self.overview_page.quick_jump.connect(self.show_page)
+        self.forecast_page.use_map_target_requested.connect(self._apply_map_target_to_forecast)
         self.events_page.locate_requested.connect(self._locate_on_map)
         self.events_page.metrics_ready.connect(self._update_overview_metrics)
         self.weather_page.metrics_ready.connect(self._update_overview_metrics)
@@ -198,6 +203,13 @@ class MainCoverWindow(QMainWindow):
         self.map_page.fly_to_coordinates(lat, lon, zoom)
         self.status_bar.showMessage(
             f"Map target updated from NASA event: {lat:.4f}, {lon:.4f} (zoom {zoom}x)"
+        )
+
+    def _apply_map_target_to_forecast(self) -> None:
+        lat, lon, label = self.map_page.current_target()
+        self.forecast_page.apply_map_target(lat, lon, label)
+        self.status_bar.showMessage(
+            f"Forecast location synced from map: {label} ({lat:.4f}, {lon:.4f})"
         )
 
     def _update_overview_metrics(self, metrics: dict) -> None:

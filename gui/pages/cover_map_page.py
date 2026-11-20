@@ -19,6 +19,9 @@ class CoverMapPage(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        default_name = next(iter(SATELLITE_PRESETS))
+        default_preset = SATELLITE_PRESETS[default_name]
+        self._current_target = (default_preset["lat"], default_preset["lon"], default_name)
         self._init_ui()
         QTimer.singleShot(900, lambda: self.fly_to_city("Jakarta Metropolitan & Port Zone"))
 
@@ -84,18 +87,25 @@ class CoverMapPage(QWidget):
             return
         if self.city_combo.currentText() != city_name:
             self.city_combo.setCurrentText(city_name)
-        self.fly_to_coordinates(preset["lat"], preset["lon"], preset["zoom"])
+        self.fly_to_coordinates(preset["lat"], preset["lon"], preset["zoom"], city_name)
         self.target_card.setText(
             f"<b>Target:</b> {city_name} &nbsp;|&nbsp; <b>Koordinat:</b> {preset['coords']} "
             f"&nbsp;|&nbsp; <b>Elevasi:</b> {preset['elevation']} &nbsp;|&nbsp; <b>Cloud:</b> {preset['cloud_cover']}"
         )
 
-    def fly_to_coordinates(self, lat: float, lon: float, zoom: int = 13) -> None:
+    def fly_to_coordinates(
+        self, lat: float, lon: float, zoom: int = 13, label: str = "Koordinat NASA"
+    ) -> None:
+        self._current_target = (lat, lon, label)
         self.map_widget.fly_to_coordinates(lat, lon, zoom)
         self.target_card.setText(
-            f"<b>Target:</b> Koordinat NASA &nbsp;|&nbsp; <b>Lat/Lon:</b> {lat:.4f}, {lon:.4f} "
+            f"<b>Target:</b> {label} &nbsp;|&nbsp; <b>Lat/Lon:</b> {lat:.4f}, {lon:.4f} "
             f"&nbsp;|&nbsp; <b>Zoom:</b> {zoom}x"
         )
+
+    def current_target(self) -> tuple[float, float, str]:
+        """Return the latitude, longitude, and label of the active map target."""
+        return self._current_target
 
     def refresh_map(self) -> None:
         self.map_widget.invalidate_map_size()

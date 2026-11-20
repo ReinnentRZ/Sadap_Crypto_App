@@ -2,7 +2,7 @@
 
 Aplikasi Desktop Kriptografi Ganda (*Dual-Mode Chameleon Application*) berbasis **Python 3.13** dan **PyQt6** yang mengusung prinsip **_Plausible Deniability_** (Penyangkalan yang Masuk Akal).
 
-Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, dashboard sidebar dengan data NASA Open APIs, penampil peta satelit interaktif Google Maps resolusi tinggi, pelacak orbit satelit nyata, jadwal lintasan (*AOS/LOS pass*), dan terminal log telemetri langsung.
+Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, dashboard sidebar dengan data NASA Open APIs dan prakiraan cuaca Open-Meteo, penampil peta satelit interaktif Google Maps resolusi tinggi, pelacak orbit satelit nyata, jadwal lintasan (*AOS/LOS pass*), dan terminal log telemetri langsung.
 
 > **Catatan penamaan:** *AeroSat GroundStation* adalah nama proyek di dokumentasi akademik, sedangkan **Sadap GroundStation** adalah nama produk yang tampil di aplikasi dan README ini.
 
@@ -15,7 +15,7 @@ Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Cit
 ```mermaid
 flowchart TD
     Start([1. Buka Aplikasi]) --> Portal["2. Portal Login & Register Operator Biasa\n(Tersimpan dengan Hash PBKDF2 di SQLite)"]
-    Portal -->|Login Berhasil| Cover["3. Dashboard Satelit 'Sadap GroundStation' (Cover Mode)\n(Sidebar: Overview, NASA EONET/NeoWs/DONKI/EPIC/APOD, Peta Bumi, Telemetri)"]
+    Portal -->|Login Berhasil| Cover["3. Dashboard Satelit 'Sadap GroundStation' (Cover Mode)\n(Sidebar: Overview, Peta Bumi, Weather Forecast Open-Meteo, NASA EONET/NeoWs/DONKI/EPIC/APOD, Telemetri)"]
     
     Cover -.->|HANYA via Hotkey Rahasia:\nCtrl + Shift + S| Gatekeeper["4. Gatekeeper Otorisasi 3-Faktor (Zero-Trust Ketat)"]
     
@@ -38,7 +38,7 @@ flowchart TD
 
 ---
 
-## 🌐 Konfigurasi NASA Open APIs (Opsional)
+## 🌐 Konfigurasi API Publik (Opsional)
 
 Dashboard cover menampilkan lima sumber data NASA: **EONET**, **NeoWs**, **DONKI**, **EPIC**, dan **APOD**. Aplikasi sudah bisa berjalan dengan `DEMO_KEY`; untuk kuota dan stabilitas demo yang lebih baik:
 
@@ -47,6 +47,8 @@ copy .env.example .env
 ```
 
 Lalu edit `.env` dan isi `NASA_API_KEY` dengan key dari <https://api.nasa.gov/>. Key dibaca sekali saat startup melalui `config/settings.py`. Respons disimpan sementara di `data/cache/nasa/` (diabaikan Git) sehingga dashboard tetap punya data saat internet terputus.
+
+Menu **Weather Forecast** memakai [Open-Meteo](https://open-meteo.com/) dan **tidak memerlukan API key**. Data prakiraan di-cache terpisah di `data/cache/weather/` dengan TTL 10 menit. Tombol **Gunakan Target Peta** menyamakan lokasi prakiraan dengan target yang sedang ditampilkan di Earth Observation.
 
 ---
 
@@ -138,22 +140,26 @@ Halaman Cover dirancang sangat meyakinkan sebagai perangkat lunak stasiun bumi r
    - Interaksi penuh: drag/pan, zoom dengan scroll wheel mouse, beralih layer (*Google Hybrid*, *Google Sat*, *ESRI World Imagery*, *OpenStreetMap*).
    - Tombol pintas taktis melayang untuk melompat cepat ke target observasi dalam negeri (*Jakarta*, *IKN*, *Surabaya*, *Bandung*, *Medan*, *Makassar*, *Denpasar*, *Indonesia*).
    - HUD koordinat dinamis yang membaca posisi target reticle bidik secara realtime.
-2. **Pelacak Satelit Nyata & Peta Orbit Geospasial**:
+2. **Weather Forecast (Open-Meteo)**:
+   - Prakiraan kondisi terkini, suhu, kelembapan, angin, dan curah hujan untuk kota Indonesia.
+   - Tabel prakiraan 7 hari dan per 3 jam dengan zona waktu lokal otomatis.
+   - Tombol **Gunakan Target Peta** untuk menyamakan lokasi forecast dengan target Earth Observation.
+3. **Pelacak Satelit Nyata & Peta Orbit Geospasial**:
    - Pelacakan satelit riil: **SADAP-SV09**, **ISS (Stasiun Luar Angkasa Internasional)**, **Landsat-9**, **Sentinel-2A**, dan **NOAA-20**.
    - Peta radar animasi koordinat lintang dan bujur realtime.
-3. **Panel Sensor Telemetri & Daya**:
+4. **Panel Sensor Telemetri & Daya**:
    - Menampilkan *Orbit Altitude*, *Ground Velocity*, *Downlink Frequency*, *Antenna Azimuth*, *Signal SNR*, daya panel surya (*Solar Array Watts*), dan indikator baterai bus satelit.
-4. **Jadwal Lintasan Orbit (*AOS/LOS Pass Prediction Schedule*)**:
+5. **Jadwal Lintasan Orbit (*AOS/LOS Pass Prediction Schedule*)**:
    - Tabel prediksi waktu melintas satelit di atas stasiun bumi (*Acquisition of Signal*, *Max Elevation*, *Duration*).
-5. **Terminal Log Telemetri Ringkas (*Compact Live Stream*)**:
+6. **Terminal Log Telemetri Ringkas (*Compact Live Stream*)**:
    - Streaming bingkai data telemetri yang ter-dekode secara langsung dan bergulir rapi.
-6. **Modul Data NASA Open APIs**:
+7. **Modul Data NASA Open APIs**:
    - **Overview**: kartu ringkasan NeoWs, EONET, dan DONKI yang terisi otomatis saat modul terkait dimuat.
    - **Natural Events**: EONET kejadian alam aktif; baris bisa langsung "Locate on Map".
    - **Space Weather**: notifikasi DONKI 7 hari terakhir.
    - **Near-Earth Objects**: feed NeoWs dengan diameter, jarak, kecepatan, dan flag bahaya.
    - **Earth Imagery**: citra Bumi EPIC dan APOD dengan cache lokal.
-7. **Sesi Operator**:
+8. **Sesi Operator**:
    - Menampilkan identitas operator yang sedang bertugas (*Callsign* & *Mission Role*) dan tombol *Sign Out*.
 
 ---

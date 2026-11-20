@@ -2,7 +2,9 @@
 
 Aplikasi Desktop Kriptografi Ganda (*Dual-Mode Chameleon Application*) berbasis **Python 3.13** dan **PyQt6** yang mengusung prinsip **_Plausible Deniability_** (Penyangkalan yang Masuk Akal).
 
-Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, penampil peta satelit interaktif Google Maps resolusi tinggi, pelacak orbit satelit nyata, jadwal lintasan (*AOS/LOS pass*), dan terminal log telemetri langsung.
+Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, dashboard sidebar dengan data NASA Open APIs, penampil peta satelit interaktif Google Maps resolusi tinggi, pelacak orbit satelit nyata, jadwal lintasan (*AOS/LOS pass*), dan terminal log telemetri langsung.
+
+> **Catatan penamaan:** *AeroSat GroundStation* adalah nama proyek di dokumentasi akademik, sedangkan **Sadap GroundStation** adalah nama produk yang tampil di aplikasi dan README ini.
 
 **Tidak ada tombol rahasia apa pun di layar.** Akses ke **Brankas Kriptografi Hitam (*BlackOps Vault*)** hanya dapat dibuka melalui kombinasi tombol rahasia (**`Ctrl + Shift + S`**) yang dilindungi oleh **Autentikasi Multi-Faktor Zero-Trust Ketat** (Hardware USB Dongle Fisik + Biometrik Wajah AI Asli + Hash Passcode Master).
 
@@ -13,7 +15,7 @@ Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Cit
 ```mermaid
 flowchart TD
     Start([1. Buka Aplikasi]) --> Portal["2. Portal Login & Register Operator Biasa\n(Tersimpan dengan Hash PBKDF2 di SQLite)"]
-    Portal -->|Login Berhasil| Cover["3. Konsol Satelit 'Sadap GroundStation' (Cover Mode)\n(Peta Satelit Google Maps Interaktif, Peta Orbit, Telemetri, Pass Schedule)"]
+    Portal -->|Login Berhasil| Cover["3. Dashboard Satelit 'Sadap GroundStation' (Cover Mode)\n(Sidebar: Overview, NASA EONET/NeoWs/DONKI/EPIC/APOD, Peta Bumi, Telemetri)"]
     
     Cover -.->|HANYA via Hotkey Rahasia:\nCtrl + Shift + S| Gatekeeper["4. Gatekeeper Otorisasi 3-Faktor (Zero-Trust Ketat)"]
     
@@ -33,6 +35,18 @@ flowchart TD
         SecretVault --> M5["Simple Blockchain Ledger (SHA-256 Chaining + Proof of Work)"]
     end
 ```
+
+---
+
+## 🌐 Konfigurasi NASA Open APIs (Opsional)
+
+Dashboard cover menampilkan lima sumber data NASA: **EONET**, **NeoWs**, **DONKI**, **EPIC**, dan **APOD**. Aplikasi sudah bisa berjalan dengan `DEMO_KEY`; untuk kuota dan stabilitas demo yang lebih baik:
+
+```powershell
+copy .env.example .env
+```
+
+Lalu edit `.env` dan isi `NASA_API_KEY` dengan key dari <https://api.nasa.gov/>. Key dibaca sekali saat startup melalui `config/settings.py`. Respons disimpan sementara di `data/cache/nasa/` (diabaikan Git) sehingga dashboard tetap punya data saat internet terputus.
 
 ---
 
@@ -116,13 +130,13 @@ Anda dapat mengganti Master Passcode kapan saja melalui **dua cara**:
 
 ---
 
-## 🛰️ Fitur Halaman Cover (Sadap GroundStation)
+## 🛰️ Fitur Dashboard Cover (Sadap GroundStation)
 
-Halaman Cover dirancang sangat meyakinkan sebagai perangkat lunak stasiun bumi resmi:
+Halaman Cover dirancang sangat meyakinkan sebagai perangkat lunak stasiun bumi resmi. Navigasi menggunakan sidebar kiri; panel telemetri asli berada di halaman **Satellite Telemetry**:
 1. **Peta Satelit Interaktif Google Maps & Earth Observation**:
    - Menampilkan citra satelit Google Earth hybrid resolusi tinggi secara langsung.
    - Interaksi penuh: drag/pan, zoom dengan scroll wheel mouse, beralih layer (*Google Hybrid*, *Google Sat*, *ESRI World Imagery*, *OpenStreetMap*).
-   - Tombol pintas taktis melayang untuk melompat cepat ke target observasi strategis (*Jakarta*, *IKN Nusantara*, *Krakatau*, *Tokyo*, *Indonesia*).
+   - Tombol pintas taktis melayang untuk melompat cepat ke target observasi dalam negeri (*Jakarta*, *IKN*, *Surabaya*, *Bandung*, *Medan*, *Makassar*, *Denpasar*, *Indonesia*).
    - HUD koordinat dinamis yang membaca posisi target reticle bidik secara realtime.
 2. **Pelacak Satelit Nyata & Peta Orbit Geospasial**:
    - Pelacakan satelit riil: **SADAP-SV09**, **ISS (Stasiun Luar Angkasa Internasional)**, **Landsat-9**, **Sentinel-2A**, dan **NOAA-20**.
@@ -133,7 +147,13 @@ Halaman Cover dirancang sangat meyakinkan sebagai perangkat lunak stasiun bumi r
    - Tabel prediksi waktu melintas satelit di atas stasiun bumi (*Acquisition of Signal*, *Max Elevation*, *Duration*).
 5. **Terminal Log Telemetri Ringkas (*Compact Live Stream*)**:
    - Streaming bingkai data telemetri yang ter-dekode secara langsung dan bergulir rapi.
-6. **Sesi Operator**:
+6. **Modul Data NASA Open APIs**:
+   - **Overview**: kartu ringkasan NeoWs, EONET, dan DONKI yang terisi otomatis saat modul terkait dimuat.
+   - **Natural Events**: EONET kejadian alam aktif; baris bisa langsung "Locate on Map".
+   - **Space Weather**: notifikasi DONKI 7 hari terakhir.
+   - **Near-Earth Objects**: feed NeoWs dengan diameter, jarak, kecepatan, dan flag bahaya.
+   - **Earth Imagery**: citra Bumi EPIC dan APOD dengan cache lokal.
+7. **Sesi Operator**:
    - Menampilkan identitas operator yang sedang bertugas (*Callsign* & *Mission Role*) dan tombol *Sign Out*.
 
 ---

@@ -1,6 +1,6 @@
 # Rencana Kerja & Roadmap Pengembangan: AeroSat GroundStation
 
-Dokumen ini memuat tahapan terstruktur pengerjaan proyek aplikasi **AeroSat GroundStation (Sadap Crypto)**, rincian aktivitas pada setiap fase, serta target output konkret yang akan dihasilkan.
+Dokumen ini memuat tahapan terstruktur pengerjaan proyek aplikasi **AeroSat GroundStation (Sadap Crypto)**, rincian aktivitas pada setiap fase, serta target output konkret yang akan dihasilkan. Produk yang dijalankan diberi nama **Sadap GroundStation** di antarmuka dan README.
 
 ---
 

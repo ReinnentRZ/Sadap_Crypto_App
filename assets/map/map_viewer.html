@@ -144,8 +144,9 @@
 				left: 12px;
 				z-index: 1000;
 				display: flex;
-        flex-direction: column;
-				gap: 6px;
+				flex-wrap: wrap;
+				max-width: 270px;
+				gap: 4px;
 			}
 			.preset-btn {
 				background: rgba(15, 23, 42, 0.85);
@@ -202,9 +203,12 @@
 		<!-- Tactical Presets Quick Jump Bar -->
 		<div class="preset-toolbar">
 			<button class="preset-btn" onclick="flyToLocation(-6.2088, 106.8456, 13)">📍 Jakarta</button>
-			<button class="preset-btn" onclick="flyToLocation(-0.973, 116.704, 13)">📍 IKN Nusantara</button>
-			<button class="preset-btn" onclick="flyToLocation(-6.1021, 105.423, 13)">🌋 Krakatau</button>
-			<button class="preset-btn" onclick="flyToLocation(35.6762, 139.6503, 13)">🗼 Tokyo</button>
+			<button class="preset-btn" onclick="flyToLocation(-0.973, 116.704, 14)">📍 IKN</button>
+			<button class="preset-btn" onclick="flyToLocation(-7.2575, 112.7521, 13)">📍 Surabaya</button>
+			<button class="preset-btn" onclick="flyToLocation(-6.9175, 107.6191, 13)">📍 Bandung</button>
+			<button class="preset-btn" onclick="flyToLocation(3.5952, 98.6722, 13)">📍 Medan</button>
+			<button class="preset-btn" onclick="flyToLocation(-5.1408, 119.4319, 13)">📍 Makassar</button>
+			<button class="preset-btn" onclick="flyToLocation(-8.65, 115.2167, 13)">📍 Denpasar</button>
 			<button class="preset-btn" onclick="flyToLocation(-2.5489, 118.0149, 5)">🌏 Indonesia</button>
 		</div>
 

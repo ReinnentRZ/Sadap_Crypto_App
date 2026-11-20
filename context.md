@@ -1,5 +1,7 @@
 # Konteks & Deskripsi Aplikasi: AeroSat GroundStation (Sadap Crypto)
 
+> Nama produk saat runtime adalah **Sadap GroundStation**; *AeroSat GroundStation* adalah sebutan pada dokumen akademik/proyek.
+
 ---
 
 ## 1. Ringkasan Eksekutif

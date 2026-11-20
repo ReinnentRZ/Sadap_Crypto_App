@@ -1,6 +1,6 @@
-# Struktur Direktori & File Proyek: AeroSat GroundStation
+# Struktur Direktori & File Proyek: Sadap GroundStation
 
-Dokumen ini menjelaskan struktur direktori, penataan file, serta pembagian tanggung jawab (*separation of concerns*) untuk codebase **AeroSat GroundStation (Sadap Crypto)**.
+Dokumen ini menjelaskan struktur direktori, penataan file, serta pembagian tanggung jawab (*separation of concerns*) untuk codebase **Sadap GroundStation (Sadap Crypto)**. Nama *AeroSat GroundStation* tetap dipakai sebagai nama proyek pada dokumen akademik.
 
 ---
 
@@ -10,8 +10,10 @@ Dokumen ini menjelaskan struktur direktori, penataan file, serta pembagian tangg
 Sadap-Crypto-App/
 │
 ├── .venv/                          # Virtual environment Python 3.13
+├── .env.example                    # Contoh konfigurasi NASA_API_KEY
+├── .env                            # API key lokal (diabaikan Git)
 │
-├── assets/                         # Asset statis, gambar, dan stylesheet GUI
+├── assets/                        # Asset statis, gambar, dan stylesheet GUI
 │   ├── icons/                      # Ikon antarmuka (satelit, kunci, shield, kamera, dsb.)
 │   ├── sample_images/              # Citra satelit contoh untuk demo steganografi
 │   └── styles/
@@ -19,7 +21,7 @@ Sadap-Crypto-App/
 │
 ├── config/                         # Konfigurasi aplikasi
 │   ├── __init__.py
-│   └── settings.py                 # Parameter sistem (RSA key size, AES parameters, PoW difficulty)
+│   └── settings.py                 # Path runtime, preset Indonesia, NASA key/cache, parameter kripto & PoW
 │
 ├── core/                           # Logika bisnis inti & algoritma kriptografi
 │   ├── __init__.py
@@ -28,7 +30,12 @@ Sadap-Crypto-App/
 │   │   ├── __init__.py
 │   │   ├── usb_dongle.py           # Deteksi hardware USB & pembacaan signature key
 │   │   ├── face_recog.py           # Face detection & landmark matching (OpenCV)
-│   │   └── hasher.py               # Algoritma hash password (Argon2 / PBKDF2)
+│   │   └── hasher.py               # Algoritma hash password (PBKDF2)
+│   │
+│   ├── api/                        # Klien NASA Open APIs (urllib + cache JSON)
+│   │   ├── __init__.py
+│   │   ├── nasa_endpoints.py       # Katalog EONET, NeoWs, DONKI, EPIC, APOD
+│   │   └── nasa_client.py          # Fetch async-friendly, TTL cache, stale-cache fallback
 │   │
 │   ├── crypto/                     # Modul Enkripsi & Dekripsi
 │   │   ├── __init__.py
@@ -60,13 +67,25 @@ Sadap-Crypto-App/
 ├── data/                           # Direktori penyimpanan data lokal (dikecualikan dari git) 
 │   ├── vault.db                    # Basis data SQLite terenkripsi lokal
 │   ├── blockchain_ledger.json      # File persistensi rantai blok
+│   ├── cache/nasa/                 # Cache respons & gambar NASA (diabaikan Git)
 │   └── keys/                       # Penyimpanan kunci publik/privat terdaftar
 │
 ├── gui/                            # Antarmuka Pengguna Berbasis PyQt6 (Tema Terang)
 │   ├── __init__.py
-│   ├── main_cover_window.py        # Mode Publik: Konsol Stasiun Satelit & Peta Bumi
+│   ├── main_cover_window.py        # Mode Publik: shell dashboard sidebar + halaman NASA/telemetri
+│   ├── normal_login_window.py      # Portal login/register operator biasa
 │   ├── auth_dialog.py              # Modal Dialog: Verifikasi USB + Kamera Wajah + Passcode
 │   ├── secret_dashboard.py         # Mode Rahasia: Dashboard Tab Kriptografi Utama
+│   │
+│   ├── pages/                      # Halaman-halaman Dashboard Cover
+│   │   ├── __init__.py
+│   │   ├── cover_overview_page.py      # Kartu ringkasan & quick access
+│   │   ├── cover_map_page.py           # Peta satelit + preset kota Indonesia
+│   │   ├── cover_natural_events_page.py# EONET
+│   │   ├── cover_space_weather_page.py # DONKI
+│   │   ├── cover_neows_page.py         # NeoWs
+│   │   ├── cover_earth_imagery_page.py # EPIC + APOD
+│   │   └── cover_telemetry_page.py     # Radar, telemetri, pass schedule, RX log
 │   │
 │   ├── tabs/                       # Tab-tab fungsional dalam Dashboard Rahasia
 │   │   ├── __init__.py
@@ -78,13 +97,16 @@ Sadap-Crypto-App/
 │   │
 │   └── components/                 # Komponen UI modular
 │       ├── __init__.py
-│       ├── camera_widget.py        # Widget preview feed webcam untuk face scan
-│       ├── satellite_map_widget.py # Widget peta simulasi stasiun bumi
-│       └── block_card_widget.py    # Widget visualisasi kartu blok blockchain
+│       ├── camera_widget.py              # Widget preview feed webcam untuk face scan
+│       ├── satellite_map_widget.py       # Widget peta simulasi stasiun bumi
+│       ├── google_satellite_map_widget.py# Peta Leaflet/Google/ESRI interaktif (WebEngine)
+│       ├── cover_sidebar.py               # Navigasi sidebar dashboard cover
+│       └── nasa_worker.py                 # QRunnable untuk request NASA & gambar
 │
 ├── tools/                          # Script utilitas administratif & penyiapan
 │   ├── setup_dongle.py             # Script CLI untuk mendaftarkan USB Flashdisk menjadi Dongle resmi
-│   └── register_face.py            # Script CLI untuk merekam wajah operator terdaftar
+│   ├── register_face.py            # Script CLI untuk merekam wajah operator terdaftar
+│   └── fetch_real_satellite.py     # Unduh citra contoh preset kota Indonesia
 │
 ├── tests/                          # Automated Unit & Integration Tests
 │   ├── __init__.py

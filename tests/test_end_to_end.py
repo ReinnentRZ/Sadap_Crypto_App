@@ -76,7 +76,7 @@ class TestEndToEndSecurityFlow(unittest.TestCase):
         pwd_hash = hash_password(master_pwd)
         self.assertTrue(verify_password(master_pwd, pwd_hash))
         self.assertFalse(verify_password("WrongPassword!", pwd_hash))
-        print("      ✓ 3-Factor Gatekeeper passed successfully.")
+        print("      [OK] 3-Factor Gatekeeper passed successfully.")
 
         # ---------------------------------------------------------
         # STEP 2: SUPER-ENCRYPTION OF CLASSIFIED DIRECTIVE
@@ -97,7 +97,7 @@ class TestEndToEndSecurityFlow(unittest.TestCase):
         dec_ok, recovered_text, _ = super_decrypt(token, vigenere_key, priv_key)
         self.assertTrue(dec_ok)
         self.assertEqual(directive, recovered_text)
-        print("      ✓ Super-encryption and decryption verified.")
+        print("      [OK] Super-encryption and decryption verified.")
 
         # ---------------------------------------------------------
         # STEP 3: ENCRYPTED DATABASE VAULT PERSISTENCE
@@ -118,7 +118,7 @@ class TestEndToEndSecurityFlow(unittest.TestCase):
         memos = db.list_memos()
         self.assertEqual(len(memos), 1)
         self.assertEqual(memos[0]["content"], directive)
-        print("      ✓ Vault database field-level encryption verified.")
+        print("      [OK] Vault database field-level encryption verified.")
 
         # ---------------------------------------------------------
         # STEP 4: AES-256-GCM FILE STREAM ENCRYPTION
@@ -139,7 +139,7 @@ class TestEndToEndSecurityFlow(unittest.TestCase):
         dec_ok, _, rec_path = decrypt_file(enc_doc_path, dec_dir, file_pass)
         self.assertTrue(dec_ok)
         self.assertEqual(rec_path.read_bytes(), doc_path.read_bytes())
-        print("      ✓ AES-256-GCM authenticated file stream verified.")
+        print("      [OK] AES-256-GCM authenticated file stream verified.")
 
         # ---------------------------------------------------------
         # STEP 5: SATELLITE STEGANOGRAPHY (LSB)
@@ -167,7 +167,7 @@ class TestEndToEndSecurityFlow(unittest.TestCase):
         ext_ok, _, ext_text, _ = extract_payload_from_image(stego_path, passphrase=stego_pass)
         self.assertTrue(ext_ok)
         self.assertEqual(ext_text, secret_stego_text)
-        print("      ✓ Steganography embedding & extraction verified (Lossless PSNR).")
+        print("      [OK] Steganography embedding & extraction verified (Lossless PSNR).")
 
         # ---------------------------------------------------------
         # STEP 6: BLOCKCHAIN NOTARIZATION & TAMPER DEFENSE
@@ -202,7 +202,7 @@ class TestEndToEndSecurityFlow(unittest.TestCase):
         self.assertFalse(chain_valid)
         self.assertIn("tampering detected", chain_err.lower())
 
-        print("      ✓ Blockchain tamper defense successfully flagged all intrusion attempts.")
+        print("      [OK] Blockchain tamper defense successfully flagged all intrusion attempts.")
         print("=" * 60)
         print(">>> ALL 6 SUBSYSTEMS & INTEGRATION TESTS PASSED WITH 100% SUCCESS <<<")
         print("=" * 60)

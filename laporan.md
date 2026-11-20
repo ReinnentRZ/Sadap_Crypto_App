@@ -424,7 +424,7 @@ Perancangan antarmuka visual mengadopsi tema *Aerospace White & Slate Grey palet
 #### 3.2.1 Mode Publik (The Cover Story)
 Antarmuka publik menampilkan konsol stasiun bumi ilmiah yang sarat informasi teknis:
 1. **Radar Ground Track GIS**: Widget kustom berbasis proyeksi peta dunia ekuirektangular yang menggambar garis orbit elips, posisi wahana saat ini, jejak lintasan masa lalu (*past footprint*), serta lingkaran horizon jangkauan antena stasiun (*visibility footprint*).
-2. **Peta Observasi Citra Satelit Target Resolusi Tinggi**: Menampilkan visualisasi citra permukaan bumi nyata dari lokasi-lokasi strategis dunia (seperti Kawasan Pelabuhan Tanjung Priok Jakarta, IKN Nusantara Kalimantan Timur, Selat Sunda/Gunung Krakatau, Teluk Tokyo Jepang, Kawah Gunung Fuji, Pelabuhan New York, dan Kota Suci Makkah).
+2. **Peta Observasi Citra Satelit Target Resolusi Tinggi**: Menampilkan visualisasi citra permukaan bumi nyata dari target strategis dalam negeri (Kawasan Pelabuhan Tanjung Priok Jakarta, IKN Nusantara Kalimantan Timur, Surabaya, Bandung, Medan, Makassar, Denpasar, serta tampilan kepulauan Indonesia).
 3. **Panel Telemetri Sub-Sistem Satelit**: Menampilkan pembaruan waktu-nyata status daya bus baterai, voltase panel surya, deviasi Doppler frekuensi S-Band/X-Band, rasio sinyal terhadap desah (*SNR*), sudut azimut antena penjejak, serta tabel jadwal pelintasan wahana (*satellite pass schedule*).
 4. **Terminal Log Aliran Data**: Menampilkan aliran paket mentah telemetri biner (AX.25 / CCSDS packet frames) yang diperbarui secara acak melalui timer internal untuk mensimulasikan stasiun bumi aktif.
 
@@ -804,7 +804,7 @@ Pengujian dilakukan secara menyeluruh terhadap 53 unit test dan skenario integra
 | UJI-02 | Autentikasi Operator Stasiun | Username: `operator`, Password: `operator123` | Kredensial valid, membuka jendela konsol pengamatan bumi | Jendela pengamatan bumi terbuka dengan GIS Radar & peta satelit | **PASSED** |
 | UJI-03 | Pengamatan Satelit Publik | Memilih satelit `SADAP-SV09` dan `ISS ALPHA` | Koordinat telemetri, orbit, dan data sensor diperbarui | Koordinat, SNR, azimuth, dan orbit terupdate real-time | **PASSED** |
 | UJI-04 | Ketiadaan Elemen UI Mencurigakan | Inspeksi visual menu & tombol pada jendela publik | Tidak terdapat tombol bertuliskan "Vault", "Encrypt", atau "Secret" | 100% elemen grafis konsisten dengan tema telemetri satelit | **PASSED** |
-| UJI-05 | Keberfungsian Peta Satelit Resolusi Tinggi | Memilih preset 'IKN Nusantara' & 'Tokyo Bay' | Citra satelit bumi hibrida ter-render secara akurat | Peta satelit Google Hybrid beresolusi tinggi berhasil ditampilkan | **PASSED** |
+| UJI-05 | Keberfungsian Peta Satelit Resolusi Tinggi | Memilih preset 'IKN Nusantara' & 'Jakarta' | Citra satelit bumi hibrida ter-render secara akurat | Peta satelit Google Hybrid beresolusi tinggi berhasil ditampilkan | **PASSED** |
 
 #### 2. Pengujian Pintu Rahasia 3FA (The Gatekeeper)
 | ID Uji | Skenario Uji | Masukan (Input) | Ekspektasi Sistem | Hasil Aktual | Status |

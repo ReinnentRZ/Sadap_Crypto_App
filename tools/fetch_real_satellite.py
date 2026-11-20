@@ -5,10 +5,13 @@ import urllib.request
 from pathlib import Path
 
 LOCATIONS = {
+    "sat_jakarta.png": "bbox=106.72,-6.28,106.97,-6.14",
     "sat_nusantara.png": "bbox=116.65,-1.05,116.95,-0.85",
-    "sat_krakatau.png": "bbox=105.35,-6.18,105.55,-6.02",
-    "sat_tokyo.png": "bbox=139.65,35.55,139.9,35.75",
-    "sat_fuji.png": "bbox=138.65,35.3,138.85,35.45"
+    "sat_surabaya.png": "bbox=112.65,-7.32,112.85,-7.20",
+    "sat_bandung.png": "bbox=107.52,-7.00,107.72,-6.85",
+    "sat_medan.png": "bbox=98.58,3.50,98.77,3.68",
+    "sat_makassar.png": "bbox=119.35,-5.20,119.52,-5.08",
+    "sat_denpasar.png": "bbox=115.15,-8.72,115.28,-8.60",
 }
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "assets" / "sample_images"

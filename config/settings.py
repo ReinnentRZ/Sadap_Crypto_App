@@ -1,4 +1,4 @@
-"""
+﻿"""
 Sadap GroundStation (Sadap Crypto) - System Configuration Settings
 """
 import os
@@ -68,6 +68,10 @@ NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
 NASA_CACHE_DIR = DATA_DIR / "cache" / "nasa"
 NASA_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 NASA_CACHE_TTL_SECONDS = 900  # 15 minutes
+
+TLE_CACHE_DIR = DATA_DIR / "cache" / "tle"
+TLE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+TLE_CACHE_TTL_SECONDS = 21600  # 6 hours (TLE updates slowly)
 
 # Open-Meteo public weather forecast (no API key required)
 WEATHER_CACHE_DIR = DATA_DIR / "cache" / "weather"
@@ -160,10 +164,59 @@ SATELLITE_PRESETS = {
     },
 }
 
-SATELLITES_DATA = {
-    "SADAP-SV09 (National Remote Sensing)": {"callsign": "SADAP-SV09", "alt": "542.4 km", "spd": "7.61 km/s", "freq": "2.245 GHz (S-Band)", "inc": "97.4°"},
-    "ISS (ZARYA) - Space Station": {"callsign": "ISS-ALPHA", "alt": "418.2 km", "spd": "7.66 km/s", "freq": "145.80 MHz (VHF)", "inc": "51.6°"},
-    "LANDSAT-9 (USGS/NASA)": {"callsign": "LANDSAT-9", "alt": "705.0 km", "spd": "7.50 km/s", "freq": "8.212 GHz (X-Band)", "inc": "98.2°"},
-    "SENTINEL-2A (Copernicus ESA)": {"callsign": "SENTINEL-2A", "alt": "786.1 km", "spd": "7.45 km/s", "freq": "8.045 GHz (X-Band)", "inc": "98.5°"},
-    "NOAA-20 (JPSS-1 Polar Weather)": {"callsign": "NOAA-20", "alt": "824.0 km", "spd": "7.42 km/s", "freq": "1.707 GHz (L-Band)", "inc": "98.7°"},
+# Recommended ground station observer for pass calculations (Jakarta, Indonesia)
+TELEMETRY_OBSERVER = {
+    "name": "Jakarta Ground Station",
+    "lat": -6.2088,
+    "lon": 106.8456,
+    "elevation_m": 8,
 }
+
+SATELLITES_DATA = {
+    "SADAP-SV09 (National Remote Sensing)": {
+        "callsign": "SADAP-SV09",
+        "alt": "542.4 km",
+        "spd": "7.61 km/s",
+        "freq": "2.245 GHz (S-Band)",
+        "inc": "97.4°",
+        "norad_id": None,
+        "simulated": True,
+    },
+    "ISS (ZARYA) - Space Station": {
+        "callsign": "ISS (ZARYA)",
+        "alt": "418.2 km",
+        "spd": "7.66 km/s",
+        "freq": "145.80 MHz (VHF)",
+        "inc": "51.6°",
+        "norad_id": 25544,
+        "simulated": False,
+    },
+    "LANDSAT-9 (USGS/NASA)": {
+        "callsign": "LANDSAT-9",
+        "alt": "705.0 km",
+        "spd": "7.50 km/s",
+        "freq": "8.212 GHz (X-Band)",
+        "inc": "98.2°",
+        "norad_id": 49260,
+        "simulated": False,
+    },
+    "SENTINEL-2A (Copernicus ESA)": {
+        "callsign": "SENTINEL-2A",
+        "alt": "786.1 km",
+        "spd": "7.45 km/s",
+        "freq": "8.045 GHz (X-Band)",
+        "inc": "98.5°",
+        "norad_id": 40697,
+        "simulated": False,
+    },
+    "NOAA-20 (JPSS-1 Polar Weather)": {
+        "callsign": "NOAA-20",
+        "alt": "824.0 km",
+        "spd": "7.42 km/s",
+        "freq": "1.707 GHz (L-Band)",
+        "inc": "98.7°",
+        "norad_id": 43013,
+        "simulated": False,
+    },
+}
+

@@ -21,7 +21,7 @@ Sadap-Crypto-App/
 │
 ├── config/                         # Konfigurasi aplikasi
 │   ├── __init__.py
-│   └── settings.py                 # Path runtime, preset Indonesia, NASA key/cache, parameter kripto & PoW
+│   └── settings.py                 # Path runtime, preset Indonesia, NASA/weather/TLE cache, observer & NORAD satelit, parameter kripto & PoW
 │
 ├── core/                           # Logika bisnis inti & algoritma kriptografi
 │   ├── __init__.py
@@ -37,7 +37,9 @@ Sadap-Crypto-App/
 │   │   ├── nasa_endpoints.py       # Katalog EONET, NeoWs, DONKI, EPIC, APOD
 │   │   ├── nasa_client.py          # Fetch NASA, TTL cache, stale-cache fallback
 │   │   ├── weather_endpoints.py    # Endpoint Open-Meteo (forecast & geocoding) + pemetaan kode WMO
-│   │   └── weather_client.py       # Fetch prakiraan cuaca & pencarian lokasi + cache lokal
+│   │   ├── weather_client.py       # Fetch prakiraan cuaca & pencarian lokasi + cache lokal
+│   │   ├── tle_endpoints.py        # Endpoint CelesTrak GP/TLE (tanpa API key)
+│   │   └── tle_client.py           # Fetch TLE CelesTrak, TTL cache, stale-cache fallback
 │   │
 │   ├── crypto/                     # Modul Enkripsi & Dekripsi
 │   │   ├── __init__.py
@@ -65,7 +67,8 @@ Sadap-Crypto-App/
 │       ├── __init__.py
 │       ├── crypto_helpers.py       # Helper konversi byte, hex, base64, dan random sagilt
 │       ├── logger.py               # Logging aktivitas sistem
-│       └── text_utils.py           # Pembersih tag HTML untuk teks APOD NASA
+│       ├── text_utils.py           # Pembersih tag HTML untuk teks APOD NASA
+│       └── orbit.py                # Propagasi orbit SGP4, ground track, dan prediksi pass dari TLE
 │
 ├── data/                           # Direktori penyimpanan data lokal (dikecualikan dari git) 
 │   ├── vault.db                    # Basis data SQLite terenkripsi lokal
@@ -91,7 +94,7 @@ Sadap-Crypto-App/
 │   │   ├── cover_space_weather_page.py # DONKI
 │   │   ├── cover_neows_page.py         # NeoWs
 │   │   ├── cover_earth_imagery_page.py # EPIC + APOD
-│   │   └── cover_telemetry_page.py     # Radar, telemetri, pass schedule, RX log
+│   │   └── cover_telemetry_page.py     # Radar, telemetri, prediksi pass, & RX log (TLE CelesTrak/SGP4 NORAD)
 │   │
 │   ├── tabs/                       # Tab-tab fungsional dalam Dashboard Rahasia
 │   │   ├── __init__.py
@@ -107,11 +110,12 @@ Sadap-Crypto-App/
 │       ├── camera_feed.py                # Preview webcam responsif (tanpa crop) + siklus kamera
 │       ├── camera_widget.py              # Verifikasi wajah di auth dialog (kamera saja)
 │       ├── face_enroll_widget.py         # Preview + capture wajah untuk tab pendaftaran
-│       ├── satellite_map_widget.py       # Widget peta simulasi stasiun bumi
+│       ├── satellite_map_widget.py       # Widget peta orbit/ground track (simulasi & data TLE nyata)
 │       ├── google_satellite_map_widget.py# Peta Leaflet/Google/ESRI interaktif (WebEngine)
 │       ├── weather_map_picker.py         # Dialog peta mini pemilih lokasi (pin di tengah peta)
 │       ├── cover_sidebar.py               # Navigasi sidebar dashboard cover
 │       ├── nasa_worker.py                 # QRunnable untuk request NASA & gambar
+│       ├── tle_worker.py                  # QRunnable untuk fetch TLE CelesTrak
 │       └── weather_worker.py              # QRunnable untuk request Open-Meteo (forecast & geocoding)
 │
 ├── tools/                          # Script utilitas administratif & penyiapan

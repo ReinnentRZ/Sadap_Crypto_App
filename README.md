@@ -2,7 +2,7 @@
 
 Aplikasi Desktop Kriptografi Ganda (*Dual-Mode Chameleon Application*) berbasis **Python 3.13** dan **PyQt6** yang mengusung prinsip **_Plausible Deniability_** (Penyangkalan yang Masuk Akal).
 
-Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, dashboard sidebar dengan data NASA Open APIs dan prakiraan cuaca Open-Meteo, penampil peta satelit interaktif Google Maps resolusi tinggi, pelacak orbit satelit nyata, jadwal lintasan (*AOS/LOS pass*), dan terminal log telemetri langsung.
+Secara visual dan operasional publik, aplikasi ini adalah **Konsol Observasi Citra Satelit Bumi & Telemetri Geospasial** yang sah, padat, dan berfungsi penuh. Aplikasi dilengkapi portal login/register operator normal, dashboard sidebar dengan data NASA Open APIs dan prakiraan cuaca Open-Meteo, penampil peta satelit interaktif Google Maps resolusi tinggi, pelacakan orbit satelit (TLE CelesTrak/SGP4 untuk satelit NORAD; simulasi untuk target fiksi), prediksi lintasan (*AOS/LOS pass*) berbasis stasiun pengamat, dan terminal log telemetri langsung.
 
 > **Catatan penamaan:** *AeroSat GroundStation* adalah nama proyek di dokumentasi akademik, sedangkan **Sadap GroundStation** adalah nama produk yang tampil di aplikasi dan README ini.
 
@@ -51,6 +51,8 @@ Lalu edit `.env` dan isi `NASA_API_KEY` dengan key dari <https://api.nasa.gov/>.
 > **Catatan penyimpanan**: Seluruh folder `data/` (**termasuk cache, template wajah, credential hash, kunci RSA, dan vault DB**) sengaja **tidak lagi ter-track Git** — hanya file lokal Anda yang menyimpannya. Saat clone pertama kali, aplikasi membuat ulang folder, hash passcode default, keypair RSA, dan database secara otomatis. Wajah operator harus didaftarkan ulang via `🧬 Face Enrollment` (dalam brankas) atau `python tools/register_face.py`. Jangan pernah commit atau force-add isi `data/`.
 
 Menu **Weather Forecast** memakai [Open-Meteo](https://open-meteo.com/) dan **tidak memerlukan API key** (forecast + geocoding global). Lokasi bisa dipilih lewat **preset**, **pencarian nama lokasi**, **input koordinat manual (lat/lon)**, atau **peta mini dengan pin di titik tengah peta** (“Pilih di Peta…”). Data prakiraan di-cache per koordinat di `data/cache/weather/` (TTL 10 menit). Tombol **Gunakan Target Peta** menyamakan lokasi forecast dengan titik tengah peta yang sedang ditampilkan di Earth Observation.
+
+Halaman **Satellite Telemetry** mengambil elemen orbit (TLE) satelit NORAD dari **CelesTrak GP** (publik, tanpa API key) dan mem-cache-nya di `data/cache/tle/` (TTL 6 jam); propagasi posisi, ground track, dan prediksi lintasan (*pass*) dilakukan lokal dengan library **SGP4**.
 
 ---
 
@@ -155,15 +157,18 @@ Halaman Cover dirancang sangat meyakinkan sebagai perangkat lunak stasiun bumi r
    - Pilih lokasi via preset kota, **pencarian nama lokasi (geocoding)**, **input koordinat manual**, atau **peta mini dengan pin di titik tengah peta**.
    - Tabel prakiraan 7 hari dan per 3 jam dengan zona waktu lokal otomatis.
    - Tombol **Gunakan Target Peta** untuk menyamakan lokasi forecast dengan titik tengah peta Earth Observation.
-3. **Pelacak Satelit Nyata & Peta Orbit Geospasial**:
-   - Pelacakan satelit riil: **SADAP-SV09**, **ISS (Stasiun Luar Angkasa Internasional)**, **Landsat-9**, **Sentinel-2A**, dan **NOAA-20**.
-   - Peta radar animasi koordinat lintang dan bujur realtime.
+3. **Pelacak Satelit & Peta Orbit Geospasial (TLE CelesTrak + SGP4)**:
+   - **Satelit NORAD (data nyata)**: **ISS (ZARYA, 25544)**, **LANDSAT-9 (49260)**, **SENTINEL-2A (40697)**, dan **NOAA-20 (43013)** — elemen orbit (TLE) diambil dari **CelesTrak GP** (publik, tanpa API key), dipropagasi dengan **SGP4** untuk posisi subsatelit, ketinggian orbit, kecepatan ground, dan jejak lintasan (*ground track*) real-time. Status sumber ditampilkan **LIVE/CACHE** beserta epoch TLE (cache lokal `data/cache/tle/`, TTL 6 jam) dengan fallback simulasi bila offline/tidak tersedia.
+   - **Satelit fiksi/simulasi**: **SADAP-SV09** (tanpa NORAD ID) tetap menggunakan lintasan & posisi simulasi lokal.
+   - Peta radar menampilkan jejak orbit dan marker posisi satelit terpilih (nyata atau simulasi).
 4. **Panel Sensor Telemetri & Daya**:
-   - Menampilkan *Orbit Altitude*, *Ground Velocity*, *Downlink Frequency*, *Antenna Azimuth*, *Signal SNR*, daya panel surya (*Solar Array Watts*), dan indikator baterai bus satelit.
-5. **Jadwal Lintasan Orbit (*AOS/LOS Pass Prediction Schedule*)**:
-   - Tabel prediksi waktu melintas satelit di atas stasiun bumi (*Acquisition of Signal*, *Max Elevation*, *Duration*).
+   - Untuk satelit NORAD: *Orbit Altitude* dan *Ground Velocity* dihitung dari propagasi TLE/SGP4; *Downlink Frequency* mengikuti konfigurasi satelit. *Azimuth/Elev (readout antena)*, *Signal SNR*, daya panel surya, dan baterai bus tetap **simulasi tampilan** (bukan telemetry housekeeping misi).
+   - Untuk satelit simulasi: seluruh nilai mengikuti mode simulasi.
+5. **Prediksi Lintasan Orbit (*AOS/LOS Pass Prediction*)**:
+   - Untuk satelit NORAD: prediksi lintasan **12 jam ke depan** (elevasi ≥ 5°) dihitung dari TLE terhadap stasiun pengamat yang direkomendasikan **Jakarta Ground Station** (−6.2088, 106.8456). Menampilkan AOS (UTC), elevasi maksimum (+ arah kompas), dan durasi.
+   - Untuk satelit simulasi: jadwal referensi ditampilkan sebagai simulasi.
 6. **Terminal Log Telemetri Ringkas (*Compact Live Stream*)**:
-   - Streaming bingkai data telemetri yang ter-dekode secara langsung dan bergulir rapi.
+   - Streaming bingkai data telemetri/event RX yang bergulir (tampilan simulasi).
 7. **Modul Data NASA Open APIs**:
    - **Overview**: kartu ringkasan NeoWs, EONET, dan DONKI yang terisi otomatis saat modul terkait dimuat.
    - **Natural Events**: EONET kejadian alam aktif; baris bisa langsung "Locate on Map".

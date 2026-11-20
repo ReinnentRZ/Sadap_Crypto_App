@@ -96,3 +96,34 @@ class GoogleSatelliteMapWidget(QWidget):
         """Smoothly animate map view to specified latitude, longitude, and zoom level."""
         script = f"flyToLocation({lat}, {lon}, {zoom});"
         self.web_view.page().runJavaScript(script)
+
+    def set_center_coordinates(self, lat: float, lon: float, zoom: int = 14):
+        """Set the map view immediately without animation."""
+        script = f"setCenterCoordinates({lat}, {lon}, {zoom});"
+        self.web_view.page().runJavaScript(script)
+
+    def enable_center_pin(self, enabled: bool = True):
+        """Show or hide a fixed pin overlay at the center of the map."""
+        flag = "true" if enabled else "false"
+        self.web_view.page().runJavaScript(
+            f"if (typeof setCenterPinEnabled === 'function') {{ setCenterPinEnabled({flag}); }}"
+        )
+
+    def get_center(self, callback):
+        """Return the current map center as ``{"lat", "lng", "zoom"}`` via *callback*."""
+        import json
+
+        def _handle(result):
+            if result is None:
+                callback(None)
+                return
+            try:
+                data = json.loads(result) if isinstance(result, str) else result
+                callback(data if isinstance(data, dict) else None)
+            except Exception:
+                callback(None)
+
+        self.web_view.page().runJavaScript(
+            "JSON.stringify(typeof getMapCenterPoint === 'function' ? getMapCenterPoint() : null)",
+            _handle,
+        )

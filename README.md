@@ -50,7 +50,7 @@ Lalu edit `.env` dan isi `NASA_API_KEY` dengan key dari <https://api.nasa.gov/>.
 
 > **Catatan penyimpanan**: Seluruh folder `data/` (**termasuk cache, template wajah, credential hash, kunci RSA, dan vault DB**) sengaja **tidak lagi ter-track Git** — hanya file lokal Anda yang menyimpannya. Saat clone pertama kali, aplikasi membuat ulang folder, hash passcode default, keypair RSA, dan database secara otomatis. Wajah operator harus didaftarkan ulang via `🧬 Face Enrollment` (dalam brankas) atau `python tools/register_face.py`. Jangan pernah commit atau force-add isi `data/`.
 
-Menu **Weather Forecast** memakai [Open-Meteo](https://open-meteo.com/) dan **tidak memerlukan API key**. Data prakiraan di-cache terpisah di `data/cache/weather/` dengan TTL 10 menit. Tombol **Gunakan Target Peta** menyamakan lokasi prakiraan dengan target yang sedang ditampilkan di Earth Observation.
+Menu **Weather Forecast** memakai [Open-Meteo](https://open-meteo.com/) dan **tidak memerlukan API key** (forecast + geocoding global). Lokasi bisa dipilih lewat **preset**, **pencarian nama lokasi**, **input koordinat manual (lat/lon)**, atau **peta mini dengan pin di titik tengah peta** (“Pilih di Peta…”). Data prakiraan di-cache per koordinat di `data/cache/weather/` (TTL 10 menit). Tombol **Gunakan Target Peta** menyamakan lokasi forecast dengan titik tengah peta yang sedang ditampilkan di Earth Observation.
 
 ---
 
@@ -150,10 +150,11 @@ Halaman Cover dirancang sangat meyakinkan sebagai perangkat lunak stasiun bumi r
    - Interaksi penuh: drag/pan, zoom dengan scroll wheel mouse, beralih layer (*Google Hybrid*, *Google Sat*, *ESRI World Imagery*, *OpenStreetMap*).
    - Tombol pintas taktis melayang untuk melompat cepat ke target observasi dalam negeri (*Jakarta*, *IKN*, *Surabaya*, *Bandung*, *Medan*, *Makassar*, *Denpasar*, *Indonesia*).
    - HUD koordinat dinamis yang membaca posisi target reticle bidik secara realtime.
-2. **Weather Forecast (Open-Meteo)**:
-   - Prakiraan kondisi terkini, suhu, kelembapan, angin, dan curah hujan untuk kota Indonesia.
+2. **Weather Forecast (Open-Meteo, global)**:
+   - Prakiraan kondisi terkini, suhu, kelembapan, angin, dan curah hujan untuk lokasi mana pun di dunia.
+   - Pilih lokasi via preset kota, **pencarian nama lokasi (geocoding)**, **input koordinat manual**, atau **peta mini dengan pin di titik tengah peta**.
    - Tabel prakiraan 7 hari dan per 3 jam dengan zona waktu lokal otomatis.
-   - Tombol **Gunakan Target Peta** untuk menyamakan lokasi forecast dengan target Earth Observation.
+   - Tombol **Gunakan Target Peta** untuk menyamakan lokasi forecast dengan titik tengah peta Earth Observation.
 3. **Pelacak Satelit Nyata & Peta Orbit Geospasial**:
    - Pelacakan satelit riil: **SADAP-SV09**, **ISS (Stasiun Luar Angkasa Internasional)**, **Landsat-9**, **Sentinel-2A**, dan **NOAA-20**.
    - Peta radar animasi koordinat lintang dan bujur realtime.

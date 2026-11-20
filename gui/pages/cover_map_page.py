@@ -104,8 +104,29 @@ class CoverMapPage(QWidget):
         )
 
     def current_target(self) -> tuple[float, float, str]:
-        """Return the latitude, longitude, and label of the active map target."""
+        """Return the latitude, longitude, and label of the last explicit map target."""
         return self._current_target
+
+    def get_current_target(self, callback) -> None:
+        """Resolve the live map target (current center) asynchronously via *callback*.
+
+        Falls back to the last explicit target when the map cannot report its center.
+        """
+
+        def _apply(point):
+            if not point:
+                callback(self._current_target)
+                return
+            try:
+                lat = float(point.get("lat"))
+                lon = float(point.get("lng"))
+            except (TypeError, ValueError):
+                callback(self._current_target)
+                return
+            label = f"Titik Peta ({lat:.4f}, {lon:.4f})"
+            callback((lat, lon, label))
+
+        self.map_widget.get_center(_apply)
 
     def refresh_map(self) -> None:
         self.map_widget.invalidate_map_size()

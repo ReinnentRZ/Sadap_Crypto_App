@@ -1,11 +1,11 @@
-"""Open-Meteo public forecast endpoint and WMO weather-code helpers.
+"""Open-Meteo public forecast and geocoding endpoints with WMO weather-code helpers.
 
-Open-Meteo needs no API key. All coordinates used by the dashboard are
-Indonesian observation targets from ``config.settings.SATELLITE_PRESETS``.
+Open-Meteo needs no API key. Coordinates can be any global location.
 """
 from urllib.parse import urlencode
 
 OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
 CURRENT_FIELDS = [
     "temperature_2m",
@@ -95,3 +95,18 @@ def build_forecast_url(latitude: float, longitude: float, forecast_days: int = 7
     """Build the full Open-Meteo forecast URL."""
     params = build_forecast_params(latitude, longitude, forecast_days)
     return f"{OPEN_METEO_FORECAST_URL}?{urlencode(params)}"
+
+
+def build_geocoding_params(name: str, count: int = 8, language: str = "id") -> dict:
+    """Build query parameters for the Open-Meteo geocoding search."""
+    return {
+        "name": name,
+        "count": count,
+        "language": language,
+        "format": "json",
+    }
+
+
+def build_geocoding_url(name: str, count: int = 8, language: str = "id") -> str:
+    """Build the full Open-Meteo geocoding search URL."""
+    return f"{OPEN_METEO_GEOCODING_URL}?{urlencode(build_geocoding_params(name, count, language))}"

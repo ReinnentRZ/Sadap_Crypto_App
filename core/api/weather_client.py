@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from config.settings import WEATHER_CACHE_DIR, WEATHER_CACHE_TTL_SECONDS
-from core.api.weather_endpoints import build_forecast_url
+from core.api.weather_endpoints import build_forecast_url, build_geocoding_url
 from core.utils.logger import get_logger
 
 logger = get_logger("WeatherClient")
@@ -110,3 +110,49 @@ def fetch_forecast(
                 source_url=cached.get("source_url", url),
             )
         raise WeatherAPIError(str(exc)) from exc
+
+
+def search_location(name: str, count: int = 8, language: str = "id", timeout: int = 10) -> list[dict]:
+    """Search global locations using the public Open-Meteo geocoding API (no key required)."""
+    query = name.strip()
+    if not query:
+        return []
+
+    url = build_geocoding_url(query, count=count, language=language)
+    try:
+        request = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "SadapGroundStation/2.5 (Open-Meteo geocoding)",
+                "Accept": "application/json",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, ValueError, OSError) as exc:
+        logger.warning(f"Open-Meteo geocoding failed for {query!r}: {exc}")
+        raise WeatherAPIError(str(exc)) from exc
+
+    results = data.get("results") or []
+    normalized = []
+    for item in results:
+        if not isinstance(item, dict):
+            continue
+        lat = item.get("latitude")
+        lon = item.get("longitude")
+        if lat is None or lon is None:
+            continue
+        try:
+            normalized.append(
+                {
+                    "name": str(item.get("name") or query),
+                    "admin1": str(item.get("admin1") or ""),
+                    "country": str(item.get("country") or ""),
+                    "latitude": float(lat),
+                    "longitude": float(lon),
+                    "timezone": str(item.get("timezone") or ""),
+                }
+            )
+        except (TypeError, ValueError):
+            continue
+    return normalized

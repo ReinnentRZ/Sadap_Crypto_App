@@ -206,11 +206,16 @@ class MainCoverWindow(QMainWindow):
         )
 
     def _apply_map_target_to_forecast(self) -> None:
-        lat, lon, label = self.map_page.current_target()
-        self.forecast_page.apply_map_target(lat, lon, label)
-        self.status_bar.showMessage(
-            f"Forecast location synced from map: {label} ({lat:.4f}, {lon:.4f})"
-        )
+        def _apply(target):
+            if not target:
+                return
+            lat, lon, label = target
+            self.forecast_page.apply_map_target(lat, lon, label)
+            self.status_bar.showMessage(
+                f"Forecast location synced from map: {label} ({lat:.4f}, {lon:.4f})"
+            )
+
+        self.map_page.get_current_target(_apply)
 
     def _update_overview_metrics(self, metrics: dict) -> None:
         self.overview_page.set_metrics(

@@ -201,3 +201,28 @@ QHeaderView::section {
     border: none;
     border-bottom: 1px solid #E2E8F0;
 }
+
+/* List Widgets */
+QListWidget, QListView {
+    background-color: #FFFFFF;
+    alternate-background-color: #F8FAFC;
+    color: #0F172A;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    outline: none;
+}
+
+QListWidget::item, QListView::item {
+    padding: 6px 8px;
+    color: #0F172A;
+}
+
+QListWidget::item:hover, QListView::item:hover {
+    background-color: #F1F5F9;
+    color: #0284C7;
+}
+
+QListWidget::item:selected, QListView::item:selected {
+    background-color: #E0F2FE;
+    color: #0369A1;
+}

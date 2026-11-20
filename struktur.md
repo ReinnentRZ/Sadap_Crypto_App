@@ -36,8 +36,8 @@ Sadap-Crypto-App/
 │   │   ├── __init__.py
 │   │   ├── nasa_endpoints.py       # Katalog EONET, NeoWs, DONKI, EPIC, APOD
 │   │   ├── nasa_client.py          # Fetch NASA, TTL cache, stale-cache fallback
-│   │   ├── weather_endpoints.py    # Endpoint Open-Meteo + pemetaan kode WMO
-│   │   └── weather_client.py       # Fetch prakiraan cuaca + cache lokal
+│   │   ├── weather_endpoints.py    # Endpoint Open-Meteo (forecast & geocoding) + pemetaan kode WMO
+│   │   └── weather_client.py       # Fetch prakiraan cuaca & pencarian lokasi + cache lokal
 │   │
 │   ├── crypto/                     # Modul Enkripsi & Dekripsi
 │   │   ├── __init__.py
@@ -86,7 +86,7 @@ Sadap-Crypto-App/
 │   │   ├── __init__.py
 │   │   ├── cover_overview_page.py      # Kartu ringkasan & quick access
 │   │   ├── cover_map_page.py           # Peta satelit + preset kota Indonesia
-│   │   ├── cover_weather_forecast_page.py # Prakiraan Open-Meteo + tabel harian/3 jam
+│   │   ├── cover_weather_forecast_page.py # Prakiraan Open-Meteo global (preset/geocoding/koordinat/peta pin-tengah) + tabel harian/3 jam
 │   │   ├── cover_natural_events_page.py# EONET
 │   │   ├── cover_space_weather_page.py # DONKI
 │   │   ├── cover_neows_page.py         # NeoWs
@@ -109,9 +109,10 @@ Sadap-Crypto-App/
 │       ├── face_enroll_widget.py         # Preview + capture wajah untuk tab pendaftaran
 │       ├── satellite_map_widget.py       # Widget peta simulasi stasiun bumi
 │       ├── google_satellite_map_widget.py# Peta Leaflet/Google/ESRI interaktif (WebEngine)
+│       ├── weather_map_picker.py         # Dialog peta mini pemilih lokasi (pin di tengah peta)
 │       ├── cover_sidebar.py               # Navigasi sidebar dashboard cover
 │       ├── nasa_worker.py                 # QRunnable untuk request NASA & gambar
-│       └── weather_worker.py              # QRunnable untuk request Open-Meteo
+│       └── weather_worker.py              # QRunnable untuk request Open-Meteo (forecast & geocoding)
 │
 ├── tools/                          # Script utilitas administratif & penyiapan
 │   ├── setup_dongle.py             # Script CLI untuk mendaftarkan USB Flashdisk menjadi Dongle resmi

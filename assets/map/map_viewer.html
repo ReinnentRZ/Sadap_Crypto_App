@@ -76,6 +76,23 @@
 				box-shadow: 0 0 6px #ef4444;
 			}
 
+			/* Center pin overlay (enabled in picker mode) */
+			.center-pin-overlay {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -100%);
+				font-size: 30px;
+				line-height: 1;
+				z-index: 1002;
+				pointer-events: none;
+				display: none;
+				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+			}
+			body.center-pin-mode .center-pin-overlay {
+				display: block;
+			}
+
 			/* Coordinate & Telemetry HUD Overlay */
 			.coord-hud {
 				position: absolute;
@@ -221,6 +238,9 @@
 			</div>
 		</div>
 
+		<!-- Center Pin Overlay (picker mode) -->
+		<div class="center-pin-overlay" id="centerPinOverlay">📍</div>
+
 		<!-- Live Coordinate Readout HUD -->
 		<div class="coord-hud" id="coordHud">TARGET CENTER: -06.20880°, +106.84560° | ZOOM: 13x | RECON: ACTIVE</div>
 
@@ -282,6 +302,20 @@
 				if (hud) {
 					hud.innerHTML = `TARGET CENTER: ${latStr}, ${lonStr} | ZOOM: ${z}x | RECON: ACTIVE`;
 				}
+			}
+
+			function setCenterPinEnabled(enabled) {
+				if (enabled) {
+					document.body.classList.add("center-pin-mode");
+				} else {
+					document.body.classList.remove("center-pin-mode");
+				}
+			}
+
+			function getMapCenterPoint() {
+				if (!map) return null;
+				const c = map.getCenter();
+				return { lat: c.lat, lng: c.lng, zoom: map.getZoom() };
 			}
 
 			map.on("move", updateHud);

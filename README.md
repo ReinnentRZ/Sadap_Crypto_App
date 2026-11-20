@@ -221,7 +221,7 @@ python main.py
    - Modal otorisasi **Zero-Trust 3-Factor** akan muncul:
      - **Faktor 1 (USB)**: Harus ada USB flashdisk tercolok yang sudah diinjeksi via `tools/setup_dongle.py`. Jika tidak ada flashdisk tercolok, status berwarna merah: `❌ No Authorized USB Dongle Detected`.
      - **Faktor 2 (Face)**: Nyalakan webcam. Wajah Anda dicocokkan dengan **semua** operator yang terdaftar; tidak ada opsi verifikasi via foto.
-     - **Faktor 3 (Passcode)**: Ketik passcode master `Sadap-Commander-2026!`.
+         - **Faktor 3 (Passcode)**: Ketik passcode master Anda (default awal fresh install: Sadap-Commander-2026!, segera ganti).
    - Klik **"🔓 Unlock Classified Vault"**.
 4. **Langkah 4: Operasi Brankas Kriptografi**
    - Jendela stasiun satelit disembunyikan dan jendela **Sadap Classified Vault** akan terbuka.
